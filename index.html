@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <script type="module" src="/src/main.ts"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DVB-I Client for WebXR</title>
+</head>
+
+<body>
+  <a-scene>
+    <a-assets>
+      <video id="test-video" crossorigin="anonymous"></video>
+    </a-assets>
+    <a-video src="#test-video" width="16" height="9" position="0 0 -10" video-handler></a-video>
+    <a-camera position="0 0 0">
+      <a-cursor></a-cursor>
+    </a-camera>
+  </a-scene>
+</body>
+
+</html>
