@@ -1,5 +1,2 @@
-import { VideoControls } from "./components/dvbi-player/controls/video-controls";
-import { DVBIPlayer } from "./components/dvbi-player/dvbi-player";
-
-DVBIPlayer.init();
-VideoControls.init();
+import("./components/dvbi-player/dvbi-player");
+import("./components/dvbi-player/controls/video-controls");

@@ -12,11 +12,13 @@
 
 <body>
   <a-scene>
-    <a-dvbi-player position="0 0 -8"></a-dvbi-player>
-    <a-dvbi-player position="0 10 -6" rotation="40 0 0"></a-dvbi-player>
-    <a-camera position="0 0 0">
-      <a-cursor></a-cursor>
+    <a-dvbi-player position="0 0 -8" muted="true"></a-dvbi-player>
+    <a-dvbi-player position="0 10 -6" rotation="40 0 0" muted="true"></a-dvbi-player>
+    <a-camera position="0 0 0" look-controls mouse-cursor>
+      <a-cursor fuse="true" rayOrigin="mouse" raycaster="objects: .raycastObject"></a-cursor>
     </a-camera>
+    <a-entity laser-controls="hand: left;" raycaster="objects: .raycastObject"></a-entity>
+    <a-entity laser-controls="hand: right;" raycaster="objects: .raycastObject"></a-entity>
   </a-scene>
 </body>
 
