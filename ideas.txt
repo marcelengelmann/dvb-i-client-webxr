@@ -1,0 +1,7 @@
+- positional audio - ref : https://github.com/chetu3319/aframe-video/blob/master/src/video-comp.js#L252
+- A carbinet / Frame wall for fav channels
+- menu button to view available channels
+- Grab a channel from menu / frame wall and put it in the room to spawn a new dvb-i stream
+- Create a controller api for different buttons and events
+    - When pressing button x than use it as a click / grab button or when pressing button y use it to increase the volume etc.
+- Include AR/MR

@@ -20,6 +20,7 @@
     "aframe": "^1.5.0",
     "dashjs": "^4.7.4",
     "events": "^3.3.0",
+    "super-hands": "^3.0.4",
     "systemjs": "^6.14.3",
     "xml2js": "^0.6.2"
   },

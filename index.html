@@ -11,14 +11,21 @@
 </head>
 
 <body>
+
   <a-scene>
-    <a-dvbi-player position="0 0 -8" muted="true"></a-dvbi-player>
-    <a-dvbi-player position="0 10 -6" rotation="40 0 0" muted="true"></a-dvbi-player>
-    <a-camera position="0 0 0" look-controls mouse-cursor>
-      <a-cursor fuse="true" rayOrigin="mouse" raycaster="objects: .raycastObject"></a-cursor>
+    <a-dvbi-player position="0 1.6 -2" muted="true"></a-dvbi-player>
+    <a-camera position="0 1.6 0">
+      <a-cursor raycaster="objects: .raycastObject"
+        animation__click="property: scale; startEvents: click; easing: easeInCubic; dur: 150; from: 0.1 0.1 0.1; to: 1 1 1"
+        animation__fusing="property: scale; startEvents: fusing; easing: easeInCubic; dur: 1500; from: 1 1 1; to: 0.1 0.1 0.1"
+        animation__mouseleave="property: scale; startEvents: mouseleave; easing: easeInCubic; dur: 500; to: 1 1 1"></a-cursor>
     </a-camera>
     <a-entity laser-controls="hand: left;" raycaster="objects: .raycastObject"></a-entity>
+    <a-entity material="opacity: 0; transparent: true" laser-controls="hand: left;" raycaster="objects: .grabbable"
+      grabber></a-entity>
     <a-entity laser-controls="hand: right;" raycaster="objects: .raycastObject"></a-entity>
+    <a-entity material="opacity: 0; transparent: true" laser-controls="hand: right;" raycaster="objects: .grabbable"
+      grabber></a-entity>
   </a-scene>
 </body>
 

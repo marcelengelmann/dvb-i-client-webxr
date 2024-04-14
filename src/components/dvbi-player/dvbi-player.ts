@@ -9,7 +9,7 @@ const dvbiClient = new DVBIClient(
 AFRAME.registerPrimitive("a-dvbi-player", {
 	defaultComponents: {
 		"dvbi-player": {},
-		position: { x: 0, y: 0, z: -8 },
+		position: { x: 0, y: 1.6, z: -2 },
 	},
 	mappings: {
 		width: "dvbi-player.width",
@@ -20,19 +20,36 @@ AFRAME.registerPrimitive("a-dvbi-player", {
 
 AFRAME.registerComponent("dvbi-player", {
 	schema: {
-		width: { type: "int", default: 16, min: 0 },
-		height: { type: "int", default: 9, min: 0 },
+		width: { type: "number", default: 4, min: 0 },
+		height: { type: "number", default: 2.25, min: 0 },
 		muted: { type: "boolean", default: false },
 	},
 	init: async function () {
 		this.defaultChannels = await dvbiClient.getDefaultChannels();
 		this.currentChannelIndex = 0;
-		this.lastChannelDifference = 1;
 		this.createDashVideo(this.data.muted);
 		this.dashPlayer.on("error", (e) => {
 			console.error(e);
-			//this.startNewStream(this.lastChannelDifference);
 		});
+
+		// Create plane to use for raycaster to show controls
+		this.geometry = new AFRAME.THREE.PlaneGeometry(
+			this.data.width,
+			this.data.height
+		);
+
+		// Create material.
+		this.material = new AFRAME.THREE.MeshStandardMaterial({
+			opacity: 0,
+			transparent: true,
+		});
+
+		// Create mesh.
+		this.mesh = new AFRAME.THREE.Mesh(this.geometry, this.material);
+
+		// Set mesh on entity.
+		this.el.setObject3D("mesh", this.mesh);
+		this.el.classList.add("grabbable");
 
 		this.dashPlayer.on("canPlay", () => {
 			this.aVideo.setAttribute("src", "#" + this.videoElement.id);
@@ -60,6 +77,10 @@ AFRAME.registerComponent("dvbi-player", {
 
 		// create the video controls
 		const videoControls = document.createElement("a-dvbi-player-controls");
+		videoControls.setAttribute("parentwidth", this.data.width);
+		videoControls.setAttribute("parentheight", this.data.height);
+		videoControls.setAttribute("muted", this.data.muted);
+		videoControls.setAttribute("playing", true);
 		videoControls.addEventListener("nextChannel", () => this.startNewStream(1));
 		videoControls.addEventListener("previousChannel", () =>
 			this.startNewStream(-1)
@@ -70,6 +91,9 @@ AFRAME.registerComponent("dvbi-player", {
 			} else {
 				this.dashPlayer.pause();
 			}
+		});
+		videoControls.addEventListener("videoIsMuted", (event: CustomEvent) => {
+			this.dashPlayer.setMute(event.detail.videoIsMuted);
 		});
 		videoControls.setAttribute("parentHeight", this.data.height);
 		videoControls.setAttribute("parentWidth", this.data.width);
