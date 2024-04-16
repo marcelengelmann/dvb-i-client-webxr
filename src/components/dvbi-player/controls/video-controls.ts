@@ -1,9 +1,12 @@
-import nextChannelImage from "./images/nextChannel.png";
-import pauseImage from "./images/pause.png";
-import playImage from "./images/play.png";
-import previousChannelImage from "./images/previousChannel.png";
-import mutedImage from "./images/volume-off.png";
-import unmutedImage from "./images/volume.png";
+import { Schema } from "aframe";
+import nextChannelImage from "../../../assets/nextChannel.png";
+import pauseImage from "../../../assets/pause.png";
+import playImage from "../../../assets/play.png";
+import previousChannelImage from "../../../assets/previousChannel.png";
+import mutedImage from "../../../assets/volume-off.png";
+import unmutedImage from "../../../assets/volume.png";
+import { BaseComponent } from "../../BaseComponent/base-component";
+import { toComponent } from "../../BaseComponent/to-component";
 
 AFRAME.registerPrimitive("a-dvbi-player-controls", {
 	defaultComponents: {
@@ -16,14 +19,26 @@ AFRAME.registerPrimitive("a-dvbi-player-controls", {
 		muted: "dvbi-player-controls.muted",
 	},
 });
-AFRAME.registerComponent("dvbi-player-controls", {
-	schema: {
-		parentwidth: { type: "number", min: 0 },
-		parentheight: { type: "number", min: 0 },
+
+export type DVBIPlayerControlsComponentData = {
+	parentwidth: number;
+	parentheight: number;
+	playing: boolean;
+	muted: boolean;
+};
+export class DVBIPlayerControlsComponent extends BaseComponent<DVBIPlayerControlsComponentData> {
+	static schema: Schema<DVBIPlayerControlsComponentData> = {
+		parentwidth: { type: "number" },
+		parentheight: { type: "number" },
 		playing: { type: "boolean", default: true },
 		muted: { type: "boolean", default: false },
-	},
-	init: function () {
+	};
+	private videoIsPlaying!: boolean;
+	private videoIsMuted!: boolean;
+	private playButton!: HTMLElement;
+	private muteButton!: HTMLElement;
+
+	public init() {
 		this.videoIsPlaying = this.data.playing;
 		this.videoIsMuted = this.data.muted;
 		const controlsUIHeight = this.data.parentheight / 11;
@@ -69,26 +84,22 @@ AFRAME.registerComponent("dvbi-player-controls", {
 			this.data.parentwidth / 2 - 2 * buttonSize,
 			this.onMuteButtonClick
 		);
-	},
-	createControlsPlane: function (
-		width: number,
-		height: number,
-		position: string
-	) {
+	}
+	private createControlsPlane(width: number, height: number, position: string) {
 		// Create plane to use for raycaster to show controls
-		this.geometry = new AFRAME.THREE.PlaneGeometry(width, height);
+		const geometry = new AFRAME.THREE.PlaneGeometry(width, height);
 
 		// Create material.
-		this.material = new AFRAME.THREE.MeshStandardMaterial({
+		const material = new AFRAME.THREE.MeshStandardMaterial({
 			opacity: 0,
 			transparent: true,
 		});
 
 		// Create mesh.
-		this.mesh = new AFRAME.THREE.Mesh(this.geometry, this.material);
+		const mesh = new AFRAME.THREE.Mesh(geometry, material);
 
 		// Set mesh on entity.
-		this.el.setObject3D("mesh", this.mesh);
+		this.el.setObject3D("mesh", mesh);
 		this.el.classList.add("raycastObject");
 
 		// set the controls position
@@ -101,8 +112,8 @@ AFRAME.registerComponent("dvbi-player-controls", {
 			this.el.setAttribute("visible", false)
 		);
 		this.el.setAttribute("visible", false);
-	},
-	createControlButton: function (
+	}
+	private createControlButton(
 		buttonSize: number,
 		image: string,
 		xPosition: number,
@@ -117,8 +128,8 @@ AFRAME.registerComponent("dvbi-player-controls", {
 		controlButton.setAttribute("src", image);
 		this.el.appendChild(controlButton);
 		return controlButton;
-	},
-	onPlayButtonClick: function () {
+	}
+	private onPlayButtonClick() {
 		this.videoIsPlaying = !this.videoIsPlaying;
 		if (this.videoIsPlaying) {
 			this.playButton.setAttribute("src", pauseImage);
@@ -130,14 +141,14 @@ AFRAME.registerComponent("dvbi-player-controls", {
 			{ videoIsPlaying: this.videoIsPlaying },
 			false
 		);
-	},
-	onPreviousChannelClick: function () {
+	}
+	private onPreviousChannelClick() {
 		this.el.emit("previousChannel", undefined, false);
-	},
-	onNextChannelClick: function () {
+	}
+	private onNextChannelClick() {
 		this.el.emit("nextChannel", undefined, false);
-	},
-	onMuteButtonClick: function () {
+	}
+	private onMuteButtonClick() {
 		this.videoIsMuted = !this.videoIsMuted;
 		if (this.videoIsMuted) {
 			this.muteButton.setAttribute("src", mutedImage);
@@ -145,5 +156,10 @@ AFRAME.registerComponent("dvbi-player-controls", {
 			this.muteButton.setAttribute("src", unmutedImage);
 		}
 		this.el.emit("videoIsMuted", { videoIsMuted: this.videoIsMuted }, false);
-	},
-});
+	}
+}
+
+AFRAME.registerComponent(
+	"dvbi-player-controls",
+	toComponent(DVBIPlayerControlsComponent)
+);

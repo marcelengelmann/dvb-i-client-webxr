@@ -1,3 +1,4 @@
+- move control buttons in own component
 - positional audio - ref : https://github.com/chetu3319/aframe-video/blob/master/src/video-comp.js#L252
 - A carbinet / Frame wall for fav channels
 - menu button to view available channels
@@ -5,3 +6,5 @@
 - Create a controller api for different buttons and events
     - When pressing button x than use it as a click / grab button or when pressing button y use it to increase the volume etc.
 - Include AR/MR
+- volume slider and volume button input
+- improve the multiple raycasters in the index.html by e.g. only adding a dvbi-controller component and primative
