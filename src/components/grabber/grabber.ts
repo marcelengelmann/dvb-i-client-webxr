@@ -1,5 +1,5 @@
-import { BaseComponent } from "../BaseComponent/base-component";
-import { toComponent } from "../BaseComponent/to-component";
+import { BaseComponent } from "../base-component/base-component";
+import { toComponent } from "../base-component/class-to-component";
 
 export class GrabberComponent extends BaseComponent {
 	grabbed: any;

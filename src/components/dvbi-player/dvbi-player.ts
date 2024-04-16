@@ -1,15 +1,11 @@
-import { Schema } from "aframe";
-import dashjs, { DashJSError } from "dashjs";
+import { Entity, Schema } from "aframe";
+import dashjs, { MediaPlayerClass } from "dashjs";
 import streamErrorImage from "../../assets/stream-error.png";
 import streamLoadingImage from "../../assets/stream-loading.png";
-import { DVBIClient } from "../../dvb-i-client/dvb-i-client";
 import { Channels } from "../../dvb-i-client/models/channel-region.model";
-import { BaseComponent } from "../BaseComponent/base-component";
-import { toComponent } from "../BaseComponent/to-component";
-
-const dvbiClient = new DVBIClient(
-	"https://dvb-i.net/production/services.php/de"
-);
+import { DVBI_CLIENT } from "../../main";
+import { BaseComponent } from "../base-component/base-component";
+import { toComponent } from "../base-component/class-to-component";
 
 AFRAME.registerPrimitive("a-dvbi-player", {
 	defaultComponents: {
@@ -22,7 +18,7 @@ AFRAME.registerPrimitive("a-dvbi-player", {
 	},
 });
 
-export type DVBIPlayerComponentData = {
+type DVBIPlayerComponentData = {
 	muted: boolean;
 	width: number;
 };
@@ -33,15 +29,16 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 	};
 	private defaultChannels!: Channels;
 	private currentChannelIndex = 0;
-	private dashPlayer: any;
-	private aVideo: any;
-	private videoElement: any;
-	private informationImage!: HTMLImageElement;
+	private dashPlayer!: MediaPlayerClass;
+	private aVideo!: Entity;
+	private videoElement!: HTMLVideoElement;
+	private informationImage!: Entity;
+	private videoControls!: Entity;
 
 	public async init() {
 		const componentHeight = this.data.width / (16 / 9);
-		this.defaultChannels = await dvbiClient.getDefaultChannels();
-		this.initGrabbable(this.data.width, componentHeight);
+		this.defaultChannels = await DVBI_CLIENT.getDefaultChannels();
+		this.init3DObject(this.data.width, componentHeight);
 		this.createInformationImage(this.data.width, componentHeight);
 		// Must first create aframe video before creating the dash player
 		this.createAFrameVideo(this.data.width, componentHeight);
@@ -49,6 +46,28 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 
 		// create the video controls
 		this.createVideoControls(this.data.width, componentHeight, this.data.muted);
+	}
+
+	public async update(oldData: DVBIPlayerComponentData) {
+		if (Object.keys(oldData).length === 0) {
+			return;
+		}
+
+		if (this.data.muted !== oldData.muted) {
+			this.dashPlayer.setMute(this.data.muted);
+			this.videoControls.setAttribute("muted", "" + this.data.muted);
+		}
+
+		if (this.data.width !== oldData.width) {
+			const height = this.data.width / (16 / 9);
+			this.videoControls.setAttribute("parentwidth", "" + this.data.width);
+			this.videoControls.setAttribute("parentheight", "" + height);
+			this.aVideo.setAttribute("width", "" + this.data.width);
+			this.aVideo.setAttribute("height", "" + height);
+			this.informationImage.setAttribute("width", "" + this.data.width);
+			this.informationImage.setAttribute("height", "" + height);
+			this.init3DObject(this.data.width, height);
+		}
 	}
 
 	private createAFrameVideo(width: number, componentHeight: number) {
@@ -61,31 +80,29 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 		this.el.appendChild(this.videoElement);
 		// create  the a-video primitive
 		this.aVideo = document.createElement("a-video");
-		this.aVideo.setAttribute("width", width);
-		this.aVideo.setAttribute("height", componentHeight);
+		this.aVideo.setAttribute("width", "" + width);
+		this.aVideo.setAttribute("height", "" + componentHeight);
 		this.aVideo.setAttribute("src", "#" + this.videoElement.id);
 		this.aVideo.setAttribute("visible", "false");
 		this.el.appendChild(this.aVideo);
 	}
 
-	private initGrabbable(width: number, height: number) {
+	private init3DObject(width: number, height: number) {
 		// Create a 3D Object that is hittable by the raycaster
 		const geometry = new AFRAME.THREE.PlaneGeometry(width, height);
+
 		const material = new AFRAME.THREE.MeshStandardMaterial({
 			opacity: 0,
 			transparent: true,
 		});
 		const mesh = new AFRAME.THREE.Mesh(geometry, material);
 		this.el.setObject3D("mesh", mesh);
-
 		// set element as grabbable and therefore moveable, by adding the class used by the grabber component
 		this.el.classList.add("grabbable");
 	}
 
 	private createInformationImage(width: number, height: number) {
-		this.informationImage = document.createElement(
-			"a-image"
-		) as unknown as HTMLImageElement;
+		this.informationImage = document.createElement("a-image");
 		this.informationImage.id = "informationImage";
 		this.informationImage.setAttribute("src", streamLoadingImage);
 		this.informationImage.setAttribute("width", "" + width);
@@ -94,16 +111,18 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 	}
 
 	private createVideoControls(width: number, height: number, muted: boolean) {
-		const videoControls = document.createElement("a-dvbi-player-controls");
-		videoControls.setAttribute("parentwidth", width);
-		videoControls.setAttribute("parentheight", height);
-		videoControls.setAttribute("muted", muted);
-		videoControls.setAttribute("playing", true);
-		videoControls.addEventListener("nextChannel", () => this.startNewStream(1));
-		videoControls.addEventListener("previousChannel", () =>
+		this.videoControls = document.createElement("a-dvbi-player-controls");
+		this.videoControls.setAttribute("parentwidth", "" + width);
+		this.videoControls.setAttribute("parentheight", "" + height);
+		this.videoControls.setAttribute("muted", "" + muted);
+		this.videoControls.setAttribute("playing", "" + true);
+		this.videoControls.addEventListener("nextChannel", () =>
+			this.startNewStream(1)
+		);
+		this.videoControls.addEventListener("previousChannel", () =>
 			this.startNewStream(-1)
 		);
-		videoControls.addEventListener("videoIsPlaying", (event: Event) => {
+		this.videoControls.addEventListener("videoIsPlaying", (event: Event) => {
 			const e = event as CustomEvent;
 			if (e.detail.videoIsPlaying) {
 				this.dashPlayer.play();
@@ -111,13 +130,13 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 				this.dashPlayer.pause();
 			}
 		});
-		videoControls.addEventListener("videoIsMuted", (event: Event) => {
+		this.videoControls.addEventListener("videoIsMuted", (event: Event) => {
 			const e = event as CustomEvent;
 			this.dashPlayer.setMute(e.detail.videoIsMuted);
 		});
-		videoControls.setAttribute("parentHeight", height);
-		videoControls.setAttribute("parentWidth", width);
-		this.el.appendChild(videoControls);
+		this.videoControls.setAttribute("parentHeight", "" + height);
+		this.videoControls.setAttribute("parentWidth", "" + width);
+		this.el.appendChild(this.videoControls);
 	}
 
 	private async createDashPlayer(muted: boolean) {
@@ -128,7 +147,7 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 		if (muted) {
 			this.dashPlayer.setMute(true);
 		}
-		this.dashPlayer.on("error", (e: DashJSError) => {
+		this.dashPlayer.on("error", (e: dashjs.ErrorEvent) => {
 			console.log(e);
 			this.showErrorImage();
 		});

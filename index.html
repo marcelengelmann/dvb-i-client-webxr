@@ -13,8 +13,7 @@
 <body>
 
   <a-scene>
-    <a-dvbi-player position="0 1.6 -2" muted="true"></a-dvbi-player>
-    <a-camera position="0 1.6 0">
+    <a-camera position="0 1.6 0" position-listener>
       <a-cursor raycaster="objects: .raycastObject"
         animation__click="property: scale; startEvents: click; easing: easeInCubic; dur: 150; from: 0.1 0.1 0.1; to: 1 1 1"
         animation__fusing="property: scale; startEvents: fusing; easing: easeInCubic; dur: 1500; from: 1 1 1; to: 0.1 0.1 0.1"
@@ -26,6 +25,9 @@
     <a-entity laser-controls="hand: right;" raycaster="objects: .raycastObject"></a-entity>
     <a-entity material="opacity: 0; transparent: true" laser-controls="hand: right;" raycaster="objects: .grabbable"
       grabber></a-entity>
+
+    <a-dvbi-player position="0 1.6 -2" muted="true" width="4"></a-dvbi-player>
+    <a-dvbi-player-channels-menu></a-dvbi-player-channels-menu>
   </a-scene>
 </body>
 
