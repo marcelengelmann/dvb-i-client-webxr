@@ -1,11 +1,11 @@
 import { Entity, Schema } from "aframe";
 import dashjs, { MediaPlayerClass } from "dashjs";
-import streamErrorImage from "../../assets/stream-error.png";
-import streamLoadingImage from "../../assets/stream-loading.png";
 import { Channels } from "../../dvb-i-client/models/channel-region.model";
 import { DVBI_CLIENT } from "../../main";
 import { BaseComponent } from "../base-component/base-component";
 import { toComponent } from "../base-component/class-to-component";
+import streamErrorImage from "/src/assets/stream-error.png";
+import streamLoadingImage from "/src/assets/stream-loading.png";
 
 AFRAME.registerPrimitive("a-dvbi-player", {
 	defaultComponents: {
@@ -15,17 +15,20 @@ AFRAME.registerPrimitive("a-dvbi-player", {
 	mappings: {
 		width: "dvbi-player.width",
 		muted: "dvbi-player.muted",
+		channelnumber: "dvbi-player.channelnumber",
 	},
 });
 
 type DVBIPlayerComponentData = {
 	muted: boolean;
 	width: number;
+	channelnumber: number;
 };
 export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> {
 	static schema: Schema<DVBIPlayerComponentData> = {
 		width: { type: "number", default: 4 },
 		muted: { type: "boolean", default: false },
+		channelnumber: { type: "number", default: -1 },
 	};
 	private defaultChannels!: Channels;
 	private currentChannelIndex = 0;
@@ -38,6 +41,7 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 	public async init() {
 		const componentHeight = this.data.width / (16 / 9);
 		this.defaultChannels = await DVBI_CLIENT.getDefaultChannels();
+
 		this.init3DObject(this.data.width, componentHeight);
 		this.createInformationImage(this.data.width, componentHeight);
 		// Must first create aframe video before creating the dash player
@@ -67,6 +71,10 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 			this.informationImage.setAttribute("width", "" + this.data.width);
 			this.informationImage.setAttribute("height", "" + height);
 			this.init3DObject(this.data.width, height);
+		}
+
+		if (this.data.channelnumber !== oldData.channelnumber) {
+			this.startNewStream(undefined, this.data.channelnumber);
 		}
 	}
 
@@ -140,15 +148,22 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 	}
 
 	private async createDashPlayer(muted: boolean) {
-		const firstStreamUrl =
-			this.defaultChannels[this.currentChannelIndex].channel.dashStreamUrl;
+		let firstStreamUrl: string | undefined;
+		if (this.data.channelnumber !== -1) {
+			firstStreamUrl = this.defaultChannels.find((channel) => {
+				channel.channelNumber === this.data.channelnumber;
+			})?.channel.dashStreamUrl;
+		} else {
+			firstStreamUrl =
+				this.defaultChannels[this.currentChannelIndex].channel.dashStreamUrl;
+		}
 		this.dashPlayer = dashjs.MediaPlayer().create();
-		this.dashPlayer.initialize(this.videoElement, firstStreamUrl, true);
+		this.dashPlayer.initialize(this.videoElement, firstStreamUrl ?? "", true);
 		if (muted) {
 			this.dashPlayer.setMute(true);
 		}
 		this.dashPlayer.on("error", (e: dashjs.ErrorEvent) => {
-			console.log(e);
+			console.error(e);
 			this.showErrorImage();
 		});
 		this.dashPlayer.on("canPlay", () => {
@@ -156,23 +171,48 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 		});
 	}
 
-	private async startNewStream(channelDifference: 1 | -1): Promise<void> {
+	private async startNewStream(
+		channelDifference?: 1 | -1,
+		channelNumber?: number
+	): Promise<void> {
 		this.showLoading();
-		this.currentChannelIndex += channelDifference;
-		if (this.currentChannelIndex < 0) {
-			this.currentChannelIndex = this.defaultChannels.length - 1;
-		} else if (this.currentChannelIndex === this.defaultChannels.length) {
-			this.currentChannelIndex = 0;
+		let nextStreamUrl: string | undefined;
+		if (channelDifference) {
+			this.currentChannelIndex += channelDifference;
+			if (this.currentChannelIndex < 0) {
+				this.currentChannelIndex = this.defaultChannels.length - 1;
+			} else if (this.currentChannelIndex === this.defaultChannels.length) {
+				this.currentChannelIndex = 0;
+			}
+			nextStreamUrl =
+				this.defaultChannels[this.currentChannelIndex].channel.dashStreamUrl;
+		} else if (channelNumber) {
+			const channelIndex = this.defaultChannels.findIndex(
+				(channel) => channel.channelNumber === this.data.channelnumber
+			);
+			this.currentChannelIndex = channelIndex;
+			if (channelIndex !== -1) {
+				nextStreamUrl =
+					this.defaultChannels[this.currentChannelIndex].channel.dashStreamUrl;
+			} else {
+				console.error(
+					"Could not find the channel with the channel number ",
+					channelNumber
+				);
+				this.showErrorImage();
+				return;
+			}
 		}
-
-		const nextStreamUrl =
-			this.defaultChannels[this.currentChannelIndex].channel.dashStreamUrl;
 
 		if (nextStreamUrl === undefined) {
 			console.error(
 				"Could not find a stream for the channel ",
 				this.defaultChannels[this.currentChannelIndex].channel.name
 			);
+			console.log(
+				this.defaultChannels[this.currentChannelIndex].channel.dashStreamUrl
+			);
+
 			this.showErrorImage();
 			return;
 		}

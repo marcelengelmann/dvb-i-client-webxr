@@ -1,0 +1,82 @@
+import { Entity, Schema } from "aframe";
+import menuImage from "../../assets/menu.png";
+import { BaseComponent } from "../base-component/base-component";
+import { toComponent } from "../base-component/class-to-component";
+
+AFRAME.registerPrimitive("a-dvbi-player-channels-menu-button", {
+	defaultComponents: {
+		"dvbi-player-channels-menu-button": {},
+	},
+	mappings: {},
+});
+
+const BUTTON_SIZE = 0.2;
+type ChannelsMenuData = {};
+
+export class ChannelsMenuButtonComponent extends BaseComponent<ChannelsMenuData> {
+	static schema: Schema<ChannelsMenuData> = {};
+	private readonly heightOffset = 2;
+	private menuButton!: Entity;
+	channelSelectionMenu!: Entity;
+
+	public async init() {
+		// TODO: a-camera with attribute position-listener else error
+		const camera = document.querySelector("a-camera") as Entity;
+		camera.addEventListener("positionChanged", (e: Event) => {
+			const event = e as CustomEvent;
+			this.el.setAttribute(
+				"position",
+				`${event.detail.x} ${event.detail.y + this.heightOffset} ${
+					event.detail.z
+				}`
+			);
+		});
+
+		const cameraPosition = camera.getAttribute("position") as unknown as {
+			x: number;
+			y: number;
+			z: number;
+		};
+		this.el.setAttribute("position", {
+			x: cameraPosition.x,
+			y: cameraPosition.y + this.heightOffset,
+			z: cameraPosition.z,
+		});
+		this.el.object3D.rotateX(Math.PI / 2);
+		this.createChannelSelectionMenu();
+
+		this.menuButton = document.createElement("a-image");
+		this.menuButton.setAttribute("width", BUTTON_SIZE);
+		this.menuButton.setAttribute("height", BUTTON_SIZE);
+		this.menuButton.setAttribute("src", menuImage);
+
+		this.menuButton.classList.add("clickable");
+
+		this.el.appendChild(this.menuButton);
+
+		this.menuButton.addEventListener("click", () => {
+			this.channelSelectionMenu.setAttribute("visible", "true");
+			this.el.removeChild(this.menuButton);
+			this.el.removeChild(this.menuButton);
+			this.menuButton.classList.remove("clickable");
+			this.el.appendChild(this.channelSelectionMenu);
+		});
+	}
+
+	private createChannelSelectionMenu() {
+		this.channelSelectionMenu = document.createElement(
+			"a-dvbi-player-channel-menu-selection"
+		);
+		this.channelSelectionMenu.addEventListener("close", () => {
+			this.menuButton.setAttribute("visible", "true");
+			this.menuButton.classList.add("clickable");
+			this.el.appendChild(this.menuButton);
+			this.el.removeChild(this.channelSelectionMenu);
+		});
+	}
+}
+
+AFRAME.registerComponent(
+	"dvbi-player-channels-menu-button",
+	toComponent(ChannelsMenuButtonComponent)
+);

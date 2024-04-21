@@ -80,6 +80,7 @@ function getChannelRegions(
 			region.RegionName
 		);
 		channelRegions.push(channelRegion);
+
 		const lcnTableRegion = lcnTables.find(
 			(table) => table.TargetRegion?.localeCompare(region.$.regionID) === 0
 		);
@@ -124,6 +125,8 @@ function addChannelsToRegion(
 		}
 		channelRegion.addChannel(channel, +lcn.$.channelNumber);
 	}
+
+	channelRegion.getChannels().sort((a, b) => a.channelNumber - b.channelNumber);
 }
 
 export { mapServiceListToChannelList };

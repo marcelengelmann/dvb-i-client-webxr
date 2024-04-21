@@ -17,3 +17,5 @@ Future Ideas:
 
 Fragen:
 Welche Endgeräte sollen alle unterstütz werden?
+Was wird bewertet? Nur Textabgabe oder auch der Code? Wenn auch Code, dann nach welchen Kriterien?
+Reicht es, wenn es komplett mit VR Geräten funktioniert aber nicht mit Maus/Tastatur (drag & drop z.b.)

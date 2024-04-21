@@ -2,17 +2,17 @@ import { Schema } from "aframe";
 import { BaseComponent } from "../base-component/base-component";
 import { toComponent } from "../base-component/class-to-component";
 
-AFRAME.registerPrimitive("a-dvbi-player-channel-selection-menu", {
+AFRAME.registerPrimitive("a-dvbi-player-channel-menu-selection", {
 	defaultComponents: {
-		"dvbi-player-channel-selection-menu": {},
+		"dvbi-player-channel-menu-selection": {},
 	},
 	mappings: {},
 });
 
-type ChannelsSelectionMenuData = {};
+type ChannelsMenuSelectionData = {};
 
-export class ChannelSelectionMenuComponent extends BaseComponent<ChannelsSelectionMenuData> {
-	static schema: Schema<ChannelsSelectionMenuData> = {};
+export class ChannelMenuSelectionComponent extends BaseComponent<ChannelsMenuSelectionData> {
+	static schema: Schema<ChannelsMenuSelectionData> = {};
 	// private channelList!: Channels;
 	// private channelIndex = 0;
 	public async init() {
@@ -21,6 +21,6 @@ export class ChannelSelectionMenuComponent extends BaseComponent<ChannelsSelecti
 }
 
 AFRAME.registerComponent(
-	"dvbi-player-channel-selection-menu",
-	toComponent(ChannelSelectionMenuComponent)
+	"dvbi-player-channel-menu-selection",
+	toComponent(ChannelMenuSelectionComponent)
 );

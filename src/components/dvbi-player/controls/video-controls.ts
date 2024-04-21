@@ -1,12 +1,12 @@
 import { Entity, Schema } from "aframe";
-import nextChannelImage from "../../../assets/nextChannel.png";
-import pauseImage from "../../../assets/pause.png";
-import playImage from "../../../assets/play.png";
-import previousChannelImage from "../../../assets/previousChannel.png";
-import mutedImage from "../../../assets/volume-off.png";
-import unmutedImage from "../../../assets/volume.png";
 import { BaseComponent } from "../../base-component/base-component";
 import { toComponent } from "../../base-component/class-to-component";
+import nextChannelImage from "/src/assets/nextChannel.png";
+import pauseImage from "/src/assets/pause.png";
+import playImage from "/src/assets/play.png";
+import previousChannelImage from "/src/assets/previousChannel.png";
+import mutedImage from "/src/assets/volume-off.png";
+import unmutedImage from "/src/assets/volume.png";
 
 AFRAME.registerPrimitive("a-dvbi-player-controls", {
 	defaultComponents: {
@@ -161,7 +161,7 @@ export class DVBIPlayerControlsComponent extends BaseComponent<DVBIPlayerControl
 
 		// Set mesh on entity.
 		this.el.setObject3D("mesh", mesh);
-		this.el.classList.add("raycastObject");
+		this.el.classList.add("clickable");
 	}
 	private createControlButton(
 		buttonSize: number,
@@ -174,13 +174,13 @@ export class DVBIPlayerControlsComponent extends BaseComponent<DVBIPlayerControl
 		controlButton.setAttribute("height", "" + buttonSize);
 		controlButton.setAttribute("position", `${xPosition} 0 0.01`);
 		controlButton.addEventListener("click", clickFunction);
-		controlButton.classList.add("raycastObject");
+		controlButton.classList.add("clickable");
 		controlButton.setAttribute("src", image);
 		this.el.appendChild(controlButton);
 		return controlButton;
 	}
 	private onPlayButtonClick() {
-		this.el.setAttribute("playing", "" + this.data.playing);
+		this.el.setAttribute("playing", "" + !this.data.playing);
 	}
 	private onPreviousChannelClick() {
 		this.el.emit("previousChannel", undefined, false);
@@ -189,7 +189,7 @@ export class DVBIPlayerControlsComponent extends BaseComponent<DVBIPlayerControl
 		this.el.emit("nextChannel", undefined, false);
 	}
 	private onMuteButtonClick() {
-		this.el.setAttribute("muted", "" + this.data.playing);
+		this.el.setAttribute("muted", "" + !this.data.muted);
 	}
 	private updateComponentsSize() {
 		this.updateControlsUIHeight(this.data.parentheight);
