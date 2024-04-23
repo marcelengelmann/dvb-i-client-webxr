@@ -4,6 +4,7 @@ import { Channels } from "../../dvb-i-client/models/channel-region.model";
 import { DVBI_CLIENT } from "../../main";
 import { BaseComponent } from "../base-component/base-component";
 import { toComponent } from "../base-component/class-to-component";
+import { DroppedEventData } from "../grabber/grabber";
 import streamErrorImage from "/src/assets/stream-error.png";
 import streamLoadingImage from "/src/assets/stream-loading.png";
 
@@ -107,6 +108,13 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 		this.el.setObject3D("mesh", mesh);
 		// set element as grabbable and therefore moveable, by adding the class used by the grabber component
 		this.el.classList.add("grabbable");
+		// set element as droppable -> streams can be dropped onto this element
+		this.el.classList.add("droppable");
+
+		this.el.addEventListener("dropped", (event: Event) => {
+			const eventData = (event as CustomEvent).detail as DroppedEventData;
+			this.startNewStream(undefined, (eventData.element as any).channelNumber);
+		});
 	}
 
 	private createInformationImage(width: number, height: number) {
@@ -150,9 +158,14 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 	private async createDashPlayer(muted: boolean) {
 		let firstStreamUrl: string | undefined;
 		if (this.data.channelnumber !== -1) {
-			firstStreamUrl = this.defaultChannels.find((channel) => {
-				channel.channelNumber === this.data.channelnumber;
-			})?.channel.dashStreamUrl;
+			const streamIndex = this.defaultChannels.findIndex(
+				(channel) => channel.channelNumber === this.data.channelnumber
+			);
+			if (streamIndex !== -1) {
+				this.currentChannelIndex = streamIndex;
+				firstStreamUrl =
+					this.defaultChannels[this.currentChannelIndex].channel.dashStreamUrl;
+			}
 		} else {
 			firstStreamUrl =
 				this.defaultChannels[this.currentChannelIndex].channel.dashStreamUrl;
@@ -171,10 +184,10 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 		});
 	}
 
-	private async startNewStream(
+	private startNewStream(
 		channelDifference?: 1 | -1,
 		channelNumber?: number
-	): Promise<void> {
+	): void {
 		this.showLoading();
 		let nextStreamUrl: string | undefined;
 		if (channelDifference) {
@@ -188,10 +201,10 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 				this.defaultChannels[this.currentChannelIndex].channel.dashStreamUrl;
 		} else if (channelNumber) {
 			const channelIndex = this.defaultChannels.findIndex(
-				(channel) => channel.channelNumber === this.data.channelnumber
+				(channel) => channel.channelNumber === channelNumber
 			);
 			this.currentChannelIndex = channelIndex;
-			if (channelIndex !== -1) {
+			if (this.currentChannelIndex !== -1) {
 				nextStreamUrl =
 					this.defaultChannels[this.currentChannelIndex].channel.dashStreamUrl;
 			} else {
@@ -216,6 +229,8 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 			this.showErrorImage();
 			return;
 		}
+		console.log(nextStreamUrl);
+
 		(this.dashPlayer as dashjs.MediaPlayerClass).attachSource(nextStreamUrl);
 	}
 

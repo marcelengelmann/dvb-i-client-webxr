@@ -1,21 +1,21 @@
-Current:
-- menu button to view available channels (above the camera)
-
-
 Future Ideas:
 - resize video
 - positional audio - ref : https://github.com/chetu3319/aframe-video/blob/master/src/video-comp.js#L252
 - A carbinet / Frame wall for fav channels
-- Grab a channel from menu / frame wall and put it in the room to spawn a new dvb-i stream
-    - Or grab it on a new stream to replace the video
+- Create a wall with frames where you can place your fav channels
+- Create a bin where you can delete elements
 - Create a controller api for different buttons and events
     - When pressing button x than use it as a click / grab button or when pressing button y use it to increase the volume etc.
 - Include AR/MR
 - volume slider and volume button input
 - improve the multiple raycasters in the index.html by e.g. only adding a dvbi-controller component and primative
-
-
+- refactor Code
+    - improve e.g. classnames for raycaster to be more unique
+- use a better trash model without holes, because holes are not hitted by the raycasters
 Fragen:
 Welche Endgeräte sollen alle unterstütz werden?
 Was wird bewertet? Nur Textabgabe oder auch der Code? Wenn auch Code, dann nach welchen Kriterien?
+Wie viele Seiten für die Ausarbeitung?
+Abgabe rein digital?
 Reicht es, wenn es komplett mit VR Geräten funktioniert aber nicht mit Maus/Tastatur (drag & drop z.b.)
+Wie funktioniert das deployen auf vr geräten?

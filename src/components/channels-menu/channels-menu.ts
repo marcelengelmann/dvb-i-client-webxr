@@ -4,6 +4,7 @@ import { DVBI_CLIENT } from "../../main";
 import { BaseComponent } from "../base-component/base-component";
 import { toComponent } from "../base-component/class-to-component";
 
+import { GrabbingEndEventData } from "../grabber/grabber";
 import nextChannelButton from "/src/assets/nextChannel.png";
 import previousChannelButton from "/src/assets/previousChannel.png";
 
@@ -135,30 +136,36 @@ export class ChannelsMenuComponent extends BaseComponent<ChannelsMenuData> {
 			this.grabbableChannelElement.setAttribute("visible", "true");
 		});
 
-		this.grabbableChannelElement.addEventListener("grabbing_end", () => {
-			this.grabbableChannelElement.setAttribute("visible", "false");
-			const newPlayer = document.createElement("a-dvbi-player");
-			const worldPos = new AFRAME.THREE.Vector3();
-			worldPos.setFromMatrixPosition(
-				this.grabbableChannelElement.object3D.matrixWorld
-			);
-			newPlayer.setAttribute("position", worldPos);
-			newPlayer.setAttribute(
-				"rotation",
-				this.grabbableChannelElement.object3D.rotation
-			);
-			const scene = document.getElementById("scene");
-			scene!.appendChild(newPlayer);
-			this.grabbableChannelElement.setAttribute(
-				"position",
-				this.channelImageElement.object3D.position
-			);
-			this.grabbableChannelElement.setAttribute(
-				"rotation",
-				this.channelImageElement.object3D.rotation
-			);
-			console.log(this.grabbableChannelElement.object3D.parent);
-		});
+		this.grabbableChannelElement.addEventListener(
+			"grabbing_end",
+			(event: Event) => {
+				const eventData = (event as CustomEvent).detail as GrabbingEndEventData;
+				this.grabbableChannelElement.setAttribute("visible", "false");
+				this.grabbableChannelElement.setAttribute(
+					"position",
+					this.channelImageElement.getAttribute("position")
+				);
+				const rotationGrabbedElement =
+					this.grabbableChannelElement.getAttribute("rotation");
+				this.grabbableChannelElement.setAttribute(
+					"rotation",
+					this.channelImageElement.getAttribute("rotation")
+				);
+				if (eventData.dropped) {
+					return;
+				}
+				const newPlayer = document.createElement("a-dvbi-player");
+				const worldPos = new AFRAME.THREE.Vector3();
+				worldPos.setFromMatrixPosition(
+					this.grabbableChannelElement.object3D.matrixWorld
+				);
+				newPlayer.setAttribute("position", worldPos);
+				newPlayer.setAttribute("channelnumber", this.channelNumber);
+				newPlayer.setAttribute("rotation", rotationGrabbedElement);
+				const scene = document.getElementById("scene");
+				scene!.appendChild(newPlayer);
+			}
+		);
 
 		this.updateComponentElements(true, true, true);
 	}
@@ -192,6 +199,7 @@ export class ChannelsMenuComponent extends BaseComponent<ChannelsMenuData> {
 		}
 		if (updateChannel) {
 			const channelElement = this.channelList[this.channelIndex];
+			this.channelNumber = channelElement.channelNumber;
 			this.channelImageElement.setAttribute(
 				"src",
 				IMAGE_PROXY_URL + channelElement.channel.channelImageUrl
@@ -200,14 +208,13 @@ export class ChannelsMenuComponent extends BaseComponent<ChannelsMenuData> {
 				"src",
 				IMAGE_PROXY_URL + channelElement.channel.channelImageUrl
 			);
+			(this.grabbableChannelElement as any).channelNumber =
+				channelElement.channelNumber;
 			this.channelNameElement.setAttribute(
 				"value",
 				channelElement.channel.name
 			);
-			this.channelNumberElement.setAttribute(
-				"value",
-				"#" + channelElement.channelNumber
-			);
+			this.channelNumberElement.setAttribute("value", "#" + this.channelNumber);
 		}
 	}
 }

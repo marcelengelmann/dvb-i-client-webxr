@@ -11,25 +11,25 @@
 </head>
 
 <body>
-  <a-scene id="scene" background="color: lightgrey">
+  <a-scene id="scene" background="color: lightgrey" cursor="rayOrigin: mouse">
     <a-camera position="0 1.6 0">
       <!-- <a-camera position="0 1.6 0" position-listener> -->
-      <a-cursor raycaster="objects: .clickable, .grabbable" rayOrigin="mouse" downEvents="['mousedown']"
+      <!-- <a-cursor raycaster="objects: .clickable"
         animation__click="property: scale; startEvents: click; easing: easeInCubic; dur: 150; from: 0.1 0.1 0.1; to: 1 1 1"
         animation__fusing="property: scale; startEvents: fusing; easing: easeInCubic; dur: 1500; from: 1 1 1; to: 0.1 0.1 0.1"
-        animation__mouseleave="property: scale; startEvents: mouseleave; easing: easeInCubic; dur: 500; to: 1 1 1"></a-cursor>
+        animation__mouseleave="property: scale; startEvents: mouseleave; easing: easeInCubic; dur: 500; to: 1 1 1"></a-cursor> -->
     </a-camera>
     <a-entity laser-controls="hand: left;" raycaster="objects: .clickable"></a-entity>
     <a-entity laser-controls="hand: right;" raycaster="objects: .clickable"></a-entity>
     <!-- Additional raycasters -->
-    <a-entity material="opacity: 0; transparent: true" laser-controls="hand: left;" raycaster="objects: .grabbable"
-      grabber></a-entity>
-    <a-entity material="opacity: 0; transparent: true" laser-controls="hand: right;" raycaster="objects: .grabbable"
-      grabber></a-entity>
+    <a-entity material="opacity: 0; transparent: true" laser-controls="hand: left;"
+      raycaster="objects: .grabbable, .droppable" grabber></a-entity>
+    <a-entity material="opacity: 0; transparent: true" laser-controls="hand: right;"
+      raycaster="objects: .grabbable, .droppable" grabber></a-entity>
 
-    <!-- <a-dvbi-player position="0 1.6 -2" muted="true"></a-dvbi-player> -->
+    <a-dvbi-player position="0 1.6 -3" muted="true" channelnumber="27"></a-dvbi-player>
     <!-- <a-dvbi-player-channels-menu backgroundcolor="grey" position="-3 1.6 -2"></a-dvbi-player-channels-menu> -->
-    <a-dvbi-player-channels-menu backgroundcolor="grey" position="0 1.6 -2"></a-dvbi-player-channels-menu>
+    <a-dvbi-player-trash position="0 0 -2"></a-dvbi-player-trash>
   </a-scene>
 </body>
 
