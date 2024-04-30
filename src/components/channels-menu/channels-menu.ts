@@ -4,7 +4,7 @@ import { DVBI_CLIENT } from "../../main";
 import { BaseComponent } from "../base-component/base-component";
 import { toComponent } from "../base-component/class-to-component";
 
-import { GrabbingEndEventData } from "../grabber/grabber";
+import { GrabbingEndEventData } from "../controls/dvbi-controller";
 import nextChannelButton from "/src/assets/nextChannel.png";
 import previousChannelButton from "/src/assets/previousChannel.png";
 

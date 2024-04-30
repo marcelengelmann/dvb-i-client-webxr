@@ -4,9 +4,11 @@ import { Channels } from "../../dvb-i-client/models/channel-region.model";
 import { DVBI_CLIENT } from "../../main";
 import { BaseComponent } from "../base-component/base-component";
 import { toComponent } from "../base-component/class-to-component";
-import { DroppedEventData } from "../grabber/grabber";
+import { DroppedEventData } from "../controls/dvbi-controller";
 import streamErrorImage from "/src/assets/stream-error.png";
 import streamLoadingImage from "/src/assets/stream-loading.png";
+
+const DEFAULT_WIDTH = 4;
 
 AFRAME.registerPrimitive("a-dvbi-player", {
 	defaultComponents: {
@@ -27,7 +29,7 @@ type DVBIPlayerComponentData = {
 };
 export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> {
 	static schema: Schema<DVBIPlayerComponentData> = {
-		width: { type: "number", default: 4 },
+		width: { type: "number", default: DEFAULT_WIDTH },
 		muted: { type: "boolean", default: false },
 		channelnumber: { type: "number", default: -1 },
 	};
@@ -38,19 +40,24 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 	private videoElement!: HTMLVideoElement;
 	private informationImage!: Entity;
 	private videoControls!: Entity;
+	resizeHanlderPlane: any;
 
 	public async init() {
-		const componentHeight = this.data.width / (16 / 9);
+		const width = DEFAULT_WIDTH;
+		const height = DEFAULT_WIDTH / (16 / 9);
 		this.defaultChannels = await DVBI_CLIENT.getDefaultChannels();
 
-		this.init3DObject(this.data.width, componentHeight);
-		this.createInformationImage(this.data.width, componentHeight);
+		this.init3DObject(width, height);
+		this.createInformationImage(width, height);
 		// Must first create aframe video before creating the dash player
-		this.createAFrameVideo(this.data.width, componentHeight);
+		this.createAFrameVideo(width, height);
 		this.createDashPlayer(this.data.muted);
 
 		// create the video controls
-		this.createVideoControls(this.data.width, componentHeight, this.data.muted);
+		this.createVideoControls(this.data.muted);
+
+		const scaleAmount = this.data.width / DEFAULT_WIDTH;
+		this.el.setAttribute("scale", `${scaleAmount} ${scaleAmount} 1`);
 	}
 
 	public async update(oldData: DVBIPlayerComponentData) {
@@ -64,14 +71,9 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 		}
 
 		if (this.data.width !== oldData.width) {
-			const height = this.data.width / (16 / 9);
-			this.videoControls.setAttribute("parentwidth", "" + this.data.width);
-			this.videoControls.setAttribute("parentheight", "" + height);
-			this.aVideo.setAttribute("width", "" + this.data.width);
-			this.aVideo.setAttribute("height", "" + height);
-			this.informationImage.setAttribute("width", "" + this.data.width);
-			this.informationImage.setAttribute("height", "" + height);
-			this.init3DObject(this.data.width, height);
+			const scaleAmount = this.data.width / DEFAULT_WIDTH;
+			this.el.setAttribute("scale", `${scaleAmount} ${scaleAmount} 1`);
+			this.videoControls.object3D.position.setZ(10);
 		}
 
 		if (this.data.channelnumber !== oldData.channelnumber) {
@@ -83,7 +85,7 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 		this.videoElement = document.createElement(
 			"video"
 		) as unknown as HTMLVideoElement;
-		this.videoElement.id = this.getUniqueId();
+		this.videoElement.id = DVBIPlayerComponent.getUniqueId();
 		this.videoElement.setAttribute("crossorigin", "anonymous");
 		// add the video as a reference for the a-video primitive
 		this.el.appendChild(this.videoElement);
@@ -110,10 +112,17 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 		this.el.classList.add("grabbable");
 		// set element as droppable -> streams can be dropped onto this element
 		this.el.classList.add("droppable");
+		// set element as resizeable
+		this.el.classList.add("resizeable");
 
 		this.el.addEventListener("dropped", (event: Event) => {
 			const eventData = (event as CustomEvent).detail as DroppedEventData;
 			this.startNewStream(undefined, (eventData.element as any).channelNumber);
+		});
+
+		this.el.addEventListener("resizeBy", (event: Event) => {
+			const resizeBy = (event as CustomEvent).detail as number;
+			this.el.setAttribute("width", this.data.width - resizeBy);
 		});
 	}
 
@@ -126,10 +135,8 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 		this.el.appendChild(this.informationImage);
 	}
 
-	private createVideoControls(width: number, height: number, muted: boolean) {
+	private createVideoControls(muted: boolean) {
 		this.videoControls = document.createElement("a-dvbi-player-controls");
-		this.videoControls.setAttribute("parentwidth", "" + width);
-		this.videoControls.setAttribute("parentheight", "" + height);
 		this.videoControls.setAttribute("muted", "" + muted);
 		this.videoControls.setAttribute("playing", "" + true);
 		this.videoControls.addEventListener("nextChannel", () =>
@@ -150,8 +157,6 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 			const e = event as CustomEvent;
 			this.dashPlayer.setMute(e.detail.videoIsMuted);
 		});
-		this.videoControls.setAttribute("parentHeight", "" + height);
-		this.videoControls.setAttribute("parentWidth", "" + width);
 		this.el.appendChild(this.videoControls);
 	}
 
@@ -222,14 +227,10 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 				"Could not find a stream for the channel ",
 				this.defaultChannels[this.currentChannelIndex].channel.name
 			);
-			console.log(
-				this.defaultChannels[this.currentChannelIndex].channel.dashStreamUrl
-			);
 
 			this.showErrorImage();
 			return;
 		}
-		console.log(nextStreamUrl);
 
 		(this.dashPlayer as dashjs.MediaPlayerClass).attachSource(nextStreamUrl);
 	}
@@ -250,7 +251,7 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 		this.aVideo.setAttribute("visible", "false");
 	}
 
-	private getUniqueId(): string {
+	private static getUniqueId(): string {
 		return (
 			Date.now().toString(36) +
 			Math.floor(

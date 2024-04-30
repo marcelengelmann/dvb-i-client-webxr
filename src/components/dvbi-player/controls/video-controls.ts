@@ -5,6 +5,7 @@ import nextChannelImage from "/src/assets/nextChannel.png";
 import pauseImage from "/src/assets/pause.png";
 import playImage from "/src/assets/play.png";
 import previousChannelImage from "/src/assets/previousChannel.png";
+import resizeImage from "/src/assets/resize.png";
 import mutedImage from "/src/assets/volume-off.png";
 import unmutedImage from "/src/assets/volume.png";
 
@@ -13,16 +14,12 @@ AFRAME.registerPrimitive("a-dvbi-player-controls", {
 		"dvbi-player-controls": {},
 	},
 	mappings: {
-		parentwidth: "dvbi-player-controls.parentwidth",
-		parentheight: "dvbi-player-controls.parentheight",
 		playing: "dvbi-player-controls.playing",
 		muted: "dvbi-player-controls.muted",
 	},
 });
 
 type DVBIPlayerControlsComponentData = {
-	parentwidth: number;
-	parentheight: number;
 	playing: boolean;
 	muted: boolean;
 };
@@ -30,30 +27,32 @@ type ControlButtonNames =
 	| "PreviousChannel"
 	| "PlayPause"
 	| "NextChannel"
-	| "Mute";
+	| "Mute"
+	| "Resize";
 export class DVBIPlayerControlsComponent extends BaseComponent<DVBIPlayerControlsComponentData> {
 	static schema: Schema<DVBIPlayerControlsComponentData> = {
-		parentwidth: { type: "number" },
-		parentheight: { type: "number" },
 		playing: { type: "boolean", default: true },
 		muted: { type: "boolean", default: false },
 	};
-	private controlsUIHeight!: number;
 	private buttonSize!: number;
-	private controlButtons = new Map<
-		ControlButtonNames,
-		{
-			entity: Entity;
-			xPositionFactor: number;
-		}
-	>();
+	private controlButtons = new Map<ControlButtonNames, Entity>();
 
 	public init() {
 		this.onPreviousChannelClick = this.onPreviousChannelClick.bind(this);
 		this.onPlayButtonClick = this.onPlayButtonClick.bind(this);
 		this.onNextChannelClick = this.onNextChannelClick.bind(this);
 		this.onMuteButtonClick = this.onMuteButtonClick.bind(this);
-		this.updateComponentsSize();
+		const defaultWidth = 4;
+		const defaultHeight = 2.25;
+		const uiHeight = defaultHeight / 11;
+		this.buttonSize = uiHeight / 1.25;
+
+		this.create3DObject(defaultWidth, uiHeight);
+
+		this.el.setAttribute(
+			"position",
+			`0 ${-(defaultHeight / 2) + uiHeight / 2} 0.01`
+		);
 
 		// only show controls, when looking at the bottom of the stream
 		this.el.setAttribute("visible", false);
@@ -71,10 +70,7 @@ export class DVBIPlayerControlsComponent extends BaseComponent<DVBIPlayerControl
 			-2 * this.buttonSize,
 			this.onPreviousChannelClick
 		);
-		this.controlButtons.set("PreviousChannel", {
-			entity: previousChannelButton,
-			xPositionFactor: -2,
-		});
+		this.controlButtons.set("PreviousChannel", previousChannelButton);
 
 		// create the play button
 		const playButton = this.createControlButton(
@@ -83,10 +79,7 @@ export class DVBIPlayerControlsComponent extends BaseComponent<DVBIPlayerControl
 			0,
 			this.onPlayButtonClick
 		);
-		this.controlButtons.set("PlayPause", {
-			entity: playButton,
-			xPositionFactor: 0,
-		});
+		this.controlButtons.set("PlayPause", playButton);
 		// create the next channel button
 		const nextChannelButton = this.createControlButton(
 			this.buttonSize,
@@ -94,22 +87,27 @@ export class DVBIPlayerControlsComponent extends BaseComponent<DVBIPlayerControl
 			2 * this.buttonSize,
 			this.onNextChannelClick
 		);
-		this.controlButtons.set("NextChannel", {
-			entity: nextChannelButton,
-			xPositionFactor: 2,
-		});
+		this.controlButtons.set("NextChannel", nextChannelButton);
 		// create mute button
 		const muteButton = this.createControlButton(
 			this.buttonSize,
 			this.data.muted ? mutedImage : unmutedImage,
-			10 * this.buttonSize,
+			-1.6,
 			this.onMuteButtonClick
 		);
 
-		this.controlButtons.set("Mute", {
-			entity: muteButton,
-			xPositionFactor: 10,
-		});
+		this.controlButtons.set("Mute", muteButton);
+
+		// create resize plane
+		const resizePlane = this.createControlButton(
+			this.buttonSize,
+			resizeImage,
+			1.9
+		);
+		resizePlane.setAttribute("rotation", "0 0 -90");
+		resizePlane.classList.add("resizeHandler");
+
+		this.controlButtons.set("Resize", resizePlane);
 	}
 
 	public async update(oldData: DVBIPlayerControlsComponentData) {
@@ -118,7 +116,7 @@ export class DVBIPlayerControlsComponent extends BaseComponent<DVBIPlayerControl
 		}
 
 		if (this.data.muted !== oldData.muted) {
-			const muteButton = this.controlButtons.get("Mute")!.entity;
+			const muteButton = this.controlButtons.get("Mute")!;
 			if (this.data.muted) {
 				muteButton.setAttribute("src", mutedImage);
 			} else {
@@ -128,7 +126,7 @@ export class DVBIPlayerControlsComponent extends BaseComponent<DVBIPlayerControl
 		}
 
 		if (this.data.playing !== oldData.playing) {
-			const playButton = this.controlButtons.get("PlayPause")!.entity;
+			const playButton = this.controlButtons.get("PlayPause")!;
 
 			if (this.data.playing) {
 				playButton.setAttribute("src", pauseImage);
@@ -140,10 +138,6 @@ export class DVBIPlayerControlsComponent extends BaseComponent<DVBIPlayerControl
 				{ videoIsPlaying: this.data.playing },
 				false
 			);
-		}
-
-		if (this.data.parentwidth !== oldData.parentheight) {
-			this.updateComponentsSize();
 		}
 	}
 	private create3DObject(width: number, height: number) {
@@ -167,15 +161,17 @@ export class DVBIPlayerControlsComponent extends BaseComponent<DVBIPlayerControl
 		buttonSize: number,
 		image: string,
 		xPosition: number,
-		clickFunction: () => void
+		clickFunction?: () => void
 	) {
 		const controlButton = document.createElement("a-image");
 		controlButton.setAttribute("width", "" + buttonSize);
 		controlButton.setAttribute("height", "" + buttonSize);
 		controlButton.setAttribute("position", `${xPosition} 0 0.01`);
-		controlButton.addEventListener("click", clickFunction);
-		controlButton.classList.add("clickable");
 		controlButton.setAttribute("src", image);
+		if (clickFunction) {
+			controlButton.addEventListener("click", clickFunction);
+			controlButton.classList.add("clickable");
+		}
 		this.el.appendChild(controlButton);
 		return controlButton;
 	}
@@ -190,34 +186,6 @@ export class DVBIPlayerControlsComponent extends BaseComponent<DVBIPlayerControl
 	}
 	private onMuteButtonClick() {
 		this.el.setAttribute("muted", "" + !this.data.muted);
-	}
-	private updateComponentsSize() {
-		this.updateControlsUIHeight(this.data.parentheight);
-		this.updateButtonSize(this.controlsUIHeight);
-		this.create3DObject(this.data.parentwidth, this.controlsUIHeight);
-		this.updatePosition(this.data.parentheight, this.controlsUIHeight);
-		this.controlButtons.forEach((button) => {
-			button.entity.setAttribute("width", "" + this.buttonSize);
-			button.entity.setAttribute("height", "" + this.buttonSize);
-			button.entity.setAttribute(
-				"position",
-				"" + this.buttonSize * button.xPositionFactor
-			);
-		});
-	}
-
-	private updateControlsUIHeight(parentHeight: number) {
-		this.controlsUIHeight = parentHeight / 11;
-	}
-	private updateButtonSize(controlsUIHeight: number) {
-		this.buttonSize = controlsUIHeight / 1.25;
-	}
-	private updatePosition(parentHeight: number, controlsUIHeight: number) {
-		// set the controls position
-		this.el.setAttribute(
-			"position",
-			`0 ${-(parentHeight / 2) + controlsUIHeight / 2} 0.01`
-		);
 	}
 }
 

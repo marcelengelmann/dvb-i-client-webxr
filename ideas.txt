@@ -3,7 +3,6 @@ Future Ideas:
 - positional audio - ref : https://github.com/chetu3319/aframe-video/blob/master/src/video-comp.js#L252
 - A carbinet / Frame wall for fav channels
 - Create a wall with frames where you can place your fav channels
-- Create a bin where you can delete elements
 - Create a controller api for different buttons and events
     - When pressing button x than use it as a click / grab button or when pressing button y use it to increase the volume etc.
 - Include AR/MR
@@ -12,6 +11,8 @@ Future Ideas:
 - refactor Code
     - improve e.g. classnames for raycaster to be more unique
 - use a better trash model without holes, because holes are not hitted by the raycasters
+
+
 Fragen:
 Welche Endgeräte sollen alle unterstütz werden?
 Was wird bewertet? Nur Textabgabe oder auch der Code? Wenn auch Code, dann nach welchen Kriterien?

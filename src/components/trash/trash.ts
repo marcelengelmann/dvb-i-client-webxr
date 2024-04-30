@@ -1,7 +1,7 @@
 import { Schema } from "aframe";
 import { BaseComponent } from "../base-component/base-component";
 import { toComponent } from "../base-component/class-to-component";
-import { DroppedEventData } from "../grabber/grabber";
+import { DroppedEventData } from "../controls/dvbi-controller";
 
 AFRAME.registerPrimitive("a-dvbi-player-trash", {
 	defaultComponents: {
