@@ -14,6 +14,5 @@ export default {
 	assetsInclude: ["**/*.png"],
 	build: {
 		sourcemap: true,
-		outDir: "../dist",
 	},
 };
