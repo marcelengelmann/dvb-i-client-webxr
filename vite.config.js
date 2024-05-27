@@ -11,7 +11,7 @@ const fullReloadAlways = {
 export default {
 	plugins: [checker({ typescript: true }), fullReloadAlways], // e.g. use TypeScript check
 	resolve: { preserveSymlinks: true },
-	assetsInclude: ["**/*.png"],
+	assetsInclude: ["**/*.png", "**/*.gltf"],
 	base: "/dvb-i-client-webxr/",
 	build: {
 		sourcemap: true,
