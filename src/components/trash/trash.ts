@@ -2,6 +2,7 @@ import { Schema } from "aframe";
 import { BaseComponent } from "../base-component/base-component";
 import { toComponent } from "../base-component/class-to-component";
 import { DroppedEventData } from "../controls/dvbi-controller";
+import trash from "./model/trash.gltf";
 
 AFRAME.registerPrimitive("a-dvbi-player-trash", {
 	defaultComponents: {
@@ -17,10 +18,7 @@ export class Trash extends BaseComponent<TrashData> {
 	static schema: Schema<TrashData> = {};
 
 	public async init() {
-		this.el.setAttribute(
-			"gltf-model",
-			`url(/src/components/trash/model/trash.gltf)`
-		);
+		this.el.setAttribute("gltf-model", `url(${trash})`);
 
 		this.el.classList.add("droppable");
 		this.el.addEventListener("dropped", (event: Event) => {
