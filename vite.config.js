@@ -12,6 +12,7 @@ export default {
 	plugins: [checker({ typescript: true }), fullReloadAlways], // e.g. use TypeScript check
 	resolve: { preserveSymlinks: true },
 	assetsInclude: ["**/*.png"],
+	base: "/dvb-i-client-webxr/",
 	build: {
 		sourcemap: true,
 	},
