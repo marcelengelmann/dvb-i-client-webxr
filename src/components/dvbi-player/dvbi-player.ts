@@ -40,7 +40,7 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 	private videoElement!: HTMLVideoElement;
 	private informationImage!: Entity;
 	private videoControls!: Entity;
-	resizeHanlderPlane: any;
+	resizeHandlerPlane: any;
 
 	public async init() {
 		const width = DEFAULT_WIDTH;
