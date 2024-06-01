@@ -8,7 +8,7 @@ import { GrabbingEndEventData } from "../controls/dvbi-controller";
 import nextChannelButton from "/src/assets/nextChannel.png";
 import previousChannelButton from "/src/assets/previousChannel.png";
 
-const IMAGE_PROXY_URL = "https://corsproxy.io/?";
+// const IMAGE_PROXY_URL = "https://corsproxy.io/?";
 
 AFRAME.registerPrimitive("a-dvbi-player-channels-menu", {
 	defaultComponents: {
@@ -162,6 +162,7 @@ export class ChannelsMenuComponent extends BaseComponent<ChannelsMenuData> {
 				newPlayer.setAttribute("position", worldPos);
 				newPlayer.setAttribute("channelnumber", this.channelNumber);
 				newPlayer.setAttribute("rotation", rotationGrabbedElement);
+				newPlayer.setAttribute("camera-position-listener", "");
 				const scene = document.getElementById("scene");
 				scene!.appendChild(newPlayer);
 			}
@@ -202,11 +203,11 @@ export class ChannelsMenuComponent extends BaseComponent<ChannelsMenuData> {
 			this.channelNumber = channelElement.channelNumber;
 			this.channelImageElement.setAttribute(
 				"src",
-				IMAGE_PROXY_URL + channelElement.channel.channelImageUrl
+				/* IMAGE_PROXY_URL + */ channelElement.channel.channelImageUrl
 			);
 			this.grabbableChannelElement.setAttribute(
 				"src",
-				IMAGE_PROXY_URL + channelElement.channel.channelImageUrl
+				/* IMAGE_PROXY_URL + */ channelElement.channel.channelImageUrl
 			);
 			(this.grabbableChannelElement as any).channelNumber =
 				channelElement.channelNumber;

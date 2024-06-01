@@ -13,13 +13,14 @@
 <body>
 
   <a-scene id="scene" background="color: lightgrey" cursor="rayOrigin: mouse" xr-mode-ui="XRMode: xr">
-    <a-camera position="0 1.6 0">
+    <a-camera id="camera" position="0 1.6 0">
     </a-camera>
     <a-entity laser-controls="hand: left;" raycaster="objects: .clickable, .grabbable, .droppable, .resizeHandler"
       dvbi-controller></a-entity>
     <a-entity laser-controls="hand: right;" raycaster="objects: .clickable, .grabbable, .droppable, .resizeHandler"
       dvbi-controller></a-entity>
-    <a-dvbi-player position="0 1.6 -2" muted="true" width="4"></a-dvbi-player>
+    <a-dvbi-player position="0.0 1.6 -2.0" muted="false" width="4" camera-position-listener></a-dvbi-player>
+    <!-- <a-dvbi-player position="0.0 1.6 6.0" muted="false" width="4" camera-position-listener></a-dvbi-player> -->
     <a-dvbi-player-channels-menu backgroundcolor="grey" position="-3 1.6 -2"></a-dvbi-player-channels-menu>
     <a-dvbi-player-trash position="0 0 -1"></a-dvbi-player-trash>
   </a-scene>

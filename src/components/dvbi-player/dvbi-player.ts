@@ -58,6 +58,13 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 
 		const scaleAmount = this.data.width / DEFAULT_WIDTH;
 		this.el.setAttribute("scale", `${scaleAmount} ${scaleAmount} 1`);
+
+		// calc volume initially
+		const cameraPosition = (
+			document.getElementById("camera") as Entity
+		).getAttribute("position")!;
+		const streamPosition = this.el.getAttribute("position");
+		this.calcVolumeFromDistance(cameraPosition, streamPosition);
 	}
 
 	public async update(oldData: DVBIPlayerComponentData) {
@@ -123,6 +130,12 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 		this.el.addEventListener("resizeBy", (event: Event) => {
 			const resizeBy = (event as CustomEvent).detail as number;
 			this.el.setAttribute("width", this.data.width - resizeBy);
+		});
+
+		this.el.addEventListener("cameraPositionChanged", (event: Event) => {
+			const cameraPosition = (event as CustomEvent).detail;
+			const streamPosition = this.el.getAttribute("position");
+			this.calcVolumeFromDistance(cameraPosition, streamPosition);
 		});
 	}
 
@@ -258,6 +271,45 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 				Math.pow(10, 12) + Math.random() * 9 * Math.pow(10, 12)
 			).toString(36)
 		);
+	}
+
+	private calcDistance(
+		pos1: { x: number; y: number; z: number },
+		pos2: { x: number; y: number; z: number }
+	): number {
+		return Math.abs(
+			Math.sqrt(
+				Math.pow(pos2.x - pos1.x, 2) +
+					Math.pow(pos2.y - pos1.y, 2) +
+					Math.pow(pos2.z - pos1.z, 2)
+			)
+		);
+	}
+
+	private calcVolumeFromDistance(
+		cameraPosition: { x: number; y: number; z: number },
+		streamPosition: { x: number; y: number; z: number }
+	): void {
+		const distance = this.calcDistance(cameraPosition, streamPosition);
+
+		const minDistance = 2.0;
+		const maxDistance = 3.0;
+		let volume = 1.0;
+		if (distance > maxDistance) {
+			volume = 0.0;
+		} else if (distance > minDistance) {
+			const gradient = -1.0 / (maxDistance - minDistance);
+			const intercept = 1 - minDistance * gradient;
+			volume = gradient * distance + intercept;
+		}
+		console.log("---------------------");
+
+		console.log(distance);
+		console.log(volume);
+
+		console.log("---------------------");
+
+		this.dashPlayer.setVolume(Math.max(0, Math.min(1, volume)));
 	}
 }
 
