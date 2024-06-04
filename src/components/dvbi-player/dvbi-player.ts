@@ -19,6 +19,9 @@ AFRAME.registerPrimitive("a-dvbi-player", {
 		width: "dvbi-player.width",
 		muted: "dvbi-player.muted",
 		channelnumber: "dvbi-player.channelnumber",
+		distancebasedvolume: "dvbi-player.distancebasedvolume",
+		maxaudiodistance: "dvbi-player.maxaudiodistance",
+		audiofalloffdistance: "dvbi-player.audiofalloffdistance",
 	},
 });
 
@@ -26,12 +29,18 @@ type DVBIPlayerComponentData = {
 	muted: boolean;
 	width: number;
 	channelnumber: number;
+	distancebasedvolume: boolean;
+	maxaudiodistance: number;
+	audiofalloffdistance: number;
 };
 export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> {
 	static schema: Schema<DVBIPlayerComponentData> = {
 		width: { type: "number", default: DEFAULT_WIDTH },
 		muted: { type: "boolean", default: false },
 		channelnumber: { type: "number", default: -1 },
+		distancebasedvolume: { type: "boolean", default: true },
+		maxaudiodistance: { type: "number", default: 8 },
+		audiofalloffdistance: { type: "number", default: 2 },
 	};
 	private defaultChannels!: Channels;
 	private currentChannelIndex = 0;
@@ -43,28 +52,36 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 	resizeHandlerPlane: any;
 
 	public async init() {
+		this.calcVolumeFromDistance = this.calcVolumeFromDistance.bind(this);
 		const width = DEFAULT_WIDTH;
 		const height = DEFAULT_WIDTH / (16 / 9);
 		this.defaultChannels = await DVBI_CLIENT.getDefaultChannels();
 
 		this.init3DObject(width, height);
 		this.createInformationImage(width, height);
+
 		// Must first create aframe video before creating the dash player
 		this.createAFrameVideo(width, height);
 		this.createDashPlayer(this.data.muted);
-
 		// create the video controls
 		this.createVideoControls(this.data.muted);
 
 		const scaleAmount = this.data.width / DEFAULT_WIDTH;
 		this.el.setAttribute("scale", `${scaleAmount} ${scaleAmount} 1`);
 
-		// calc volume initially
-		const cameraPosition = (
-			document.getElementById("camera") as Entity
-		).getAttribute("position")!;
-		const streamPosition = this.el.getAttribute("position");
-		this.calcVolumeFromDistance(cameraPosition, streamPosition);
+		// calc volume initially if distant based volume is used
+		if (this.data.distancebasedvolume) {
+			this.el.addEventListener(
+				"cameraPositionChanged",
+				this.calcVolumeFromDistance
+			);
+			const cameraPosition = (
+				document.getElementById("camera") as Entity
+			).getAttribute("position")!;
+			this.calcVolumeFromDistance(
+				new CustomEvent("", { detail: cameraPosition })
+			);
+		}
 	}
 
 	public async update(oldData: DVBIPlayerComponentData) {
@@ -85,6 +102,20 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 
 		if (this.data.channelnumber !== oldData.channelnumber) {
 			this.startNewStream(undefined, this.data.channelnumber);
+		}
+
+		if (this.data.distancebasedvolume !== oldData.distancebasedvolume) {
+			if (this.data.distancebasedvolume) {
+				this.el.addEventListener(
+					"cameraPositionChanged",
+					this.calcVolumeFromDistance
+				);
+			} else {
+				this.el.removeEventListener(
+					"cameraPositionChanged",
+					this.calcVolumeFromDistance
+				);
+			}
 		}
 	}
 
@@ -131,12 +162,6 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 			const resizeBy = (event as CustomEvent).detail as number;
 			this.el.setAttribute("width", this.data.width - resizeBy);
 		});
-
-		this.el.addEventListener("cameraPositionChanged", (event: Event) => {
-			const cameraPosition = (event as CustomEvent).detail;
-			const streamPosition = this.el.getAttribute("position");
-			this.calcVolumeFromDistance(cameraPosition, streamPosition);
-		});
 	}
 
 	private createInformationImage(width: number, height: number) {
@@ -152,11 +177,19 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 		this.videoControls = document.createElement("a-dvbi-player-controls");
 		this.videoControls.setAttribute("muted", "" + muted);
 		this.videoControls.setAttribute("playing", "" + true);
+		this.videoControls.setAttribute(
+			"channellogo",
+			"" +
+				this.defaultChannels[this.currentChannelIndex].channel.channelImageUrl
+		);
 		this.videoControls.addEventListener("nextChannel", () =>
 			this.startNewStream(1)
 		);
 		this.videoControls.addEventListener("previousChannel", () =>
 			this.startNewStream(-1)
+		);
+		this.videoControls.addEventListener("closeStream", () =>
+			this.el.parentElement?.removeChild(this.el)
 		);
 		this.videoControls.addEventListener("videoIsPlaying", (event: Event) => {
 			const e = event as CustomEvent;
@@ -170,6 +203,10 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 			const e = event as CustomEvent;
 			this.dashPlayer.setMute(e.detail.videoIsMuted);
 		});
+		this.videoControls.setAttribute(
+			"channellogo",
+			this.defaultChannels[this.currentChannelIndex].channel.channelImageUrl
+		);
 		this.el.appendChild(this.videoControls);
 	}
 
@@ -234,7 +271,10 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 				return;
 			}
 		}
-
+		this.videoControls.setAttribute(
+			"channellogo",
+			this.defaultChannels[this.currentChannelIndex].channel.channelImageUrl
+		);
 		if (nextStreamUrl === undefined) {
 			console.error(
 				"Could not find a stream for the channel ",
@@ -286,14 +326,13 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 		);
 	}
 
-	private calcVolumeFromDistance(
-		cameraPosition: { x: number; y: number; z: number },
-		streamPosition: { x: number; y: number; z: number }
-	): void {
+	private calcVolumeFromDistance(event: Event): void {
+		const cameraPosition = (event as CustomEvent).detail;
+		const streamPosition = this.el.getAttribute("position");
 		const distance = this.calcDistance(cameraPosition, streamPosition);
 
-		const minDistance = 2.0;
-		const maxDistance = 3.0;
+		const minDistance = this.data.audiofalloffdistance;
+		const maxDistance = this.data.maxaudiodistance;
 		let volume = 1.0;
 		if (distance > maxDistance) {
 			volume = 0.0;
@@ -302,12 +341,6 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 			const intercept = 1 - minDistance * gradient;
 			volume = gradient * distance + intercept;
 		}
-		console.log("---------------------");
-
-		console.log(distance);
-		console.log(volume);
-
-		console.log("---------------------");
 
 		this.dashPlayer.setVolume(Math.max(0, Math.min(1, volume)));
 	}
