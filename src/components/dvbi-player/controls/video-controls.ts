@@ -71,7 +71,10 @@ export class DVBIPlayerControlsComponent extends BaseComponent<DVBIPlayerControl
 
 		// only show controls, when looking at the bottom of the stream
 		this.controlsAreaBottom.setAttribute("visible", false);
+		this.controlsAreaBottom.classList.add("clickable");
 		this.controlsAreaTop.setAttribute("visible", false);
+		this.controlsAreaTop.classList.add("clickable");
+
 		this.controlsAreaBottom.addEventListener("mouseenter", () => {
 			this.controlsAreaBottom.setAttribute("visible", true);
 			this.controlsAreaTop.setAttribute("visible", true);
@@ -213,9 +216,8 @@ export class DVBIPlayerControlsComponent extends BaseComponent<DVBIPlayerControl
 		this.controlsAreaBottom.setObject3D("mesh", mesh);
 		this.controlsAreaTop.setObject3D("mesh", mesh.clone(true));
 
-		this.el.appendChild(this.controlsAreaBottom);
 		this.el.appendChild(this.controlsAreaTop);
-		this.el.classList.add("clickable");
+		this.el.appendChild(this.controlsAreaBottom);
 	}
 	private createControlButton(
 		buttonSize: number,

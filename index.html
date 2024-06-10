@@ -16,10 +16,11 @@
     <a-camera id="camera" position="0 1.6 0">
     </a-camera>
     <!-- controllers -->
-    <a-entity laser-controls="hand: left;" raycaster="objects: .clickable, .grabbable, .droppable, .resizeHandler"
-      dvbi-controller></a-entity>
-    <a-entity laser-controls="hand: right;" raycaster="objects: .clickable, .grabbable, .droppable, .resizeHandler"
-      dvbi-controller></a-entity>
+    <a-entity laser-controls="hand: left;"
+      dvbi-controller="grabstartevent: gripdown; grabendevent: gripup; resizestartevent: gripdown; resizeendevent: gripup;"></a-entity>
+    <a-entity laser-controls="hand: right;"
+      dvbi-controller="grabstartevent: gripdown; grabendevent: gripup; resizestartevent: gripdown; resizeendevent: gripup;"></a-entity>
+
     <!-- dvbi elements -->
     <a-dvbi-player position="0.0 1.6 -2.0" muted="true" width="4" camera-position-listener></a-dvbi-player>
     <a-dvbi-player-channels-menu backgroundcolor="grey" position="-3 1.6 -2"></a-dvbi-player-channels-menu>

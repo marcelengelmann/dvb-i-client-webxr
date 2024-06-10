@@ -1,4 +1,4 @@
-import { Entity } from "aframe";
+import { Entity, Schema } from "aframe";
 import { BaseComponent } from "../base-component/base-component";
 import { toComponent } from "../base-component/class-to-component";
 
@@ -11,10 +11,24 @@ export type DroppedEventData = {
 	element: Entity;
 };
 
-export class DVBIControllerComponent extends BaseComponent {
+export type DVBIControllerComponentData = {
+	grabstartevent?: string;
+	grabendevent?: string;
+	resizestartevent?: string;
+	resizeendevent?: string;
+};
+
+export class DVBIControllerComponent extends BaseComponent<DVBIControllerComponentData> {
+	static schema: Schema<DVBIControllerComponentData> = {
+		grabstartevent: { type: "string", default: undefined },
+		grabendevent: { type: "string", default: undefined },
+		resizestartevent: { type: "string", default: undefined },
+		resizeendevent: { type: "string", default: undefined },
+	};
 	private grabData?: {
 		grabbed: Entity;
 		grabbedParent: any;
+		grapStartEvent: boolean;
 	};
 
 	private resizeData?: {
@@ -26,93 +40,106 @@ export class DVBIControllerComponent extends BaseComponent {
 	};
 
 	public init(): void {
-		this.gripDown = this.gripDown.bind(this);
-		this.gripUp = this.gripUp.bind(this);
-		this.el.addEventListener("gripdown", this.gripDown);
-		this.el.addEventListener("gripup", this.gripUp);
-	}
+		const raycasterObjects = [".clickable"];
+		if (this.data.grabstartevent && this.data.grabendevent) {
+			this.grabStart = this.grabStart.bind(this);
+			this.grabEnd = this.grabEnd.bind(this);
+			this.el.addEventListener(this.data.grabstartevent, this.grabStart);
+			this.el.addEventListener(this.data.grabendevent, this.grabEnd);
+			raycasterObjects.push(".grabbable", ".droppable");
+		} else if (
+			(!this.data.grabstartevent && this.data.grabendevent) ||
+			(this.data.grabstartevent && !this.data.grabendevent)
+		) {
+			console.error(
+				"You must define grab events for both, the start and end of the grab action"
+			);
+		}
 
-	// general functions
-	private gripDown(event: any): void {
-		const grabElement = getFirstIntersectionByClass(
-			event.currentTarget.components["raycaster"].intersections,
-			"grabbable"
+		if (this.data.resizestartevent && this.data.resizeendevent) {
+			this.resizeStart = this.resizeStart.bind(this);
+			this.resizeEnd = this.resizeEnd.bind(this);
+			this.el.addEventListener(this.data.resizestartevent, this.resizeStart);
+			this.el.addEventListener(this.data.resizeendevent, this.resizeEnd);
+			raycasterObjects.push(".resizeHandler");
+		} else if (
+			(!this.data.resizestartevent && this.data.resizeendevent) ||
+			(this.data.resizestartevent && !this.data.resizeendevent)
+		) {
+			console.error(
+				"You must define resize events for both, the start and end of the resize action"
+			);
+		}
+		this.el.setAttribute(
+			"raycaster",
+			`objects: ${raycasterObjects.join(", ")}`
 		);
-		const resizeElement = getFirstIntersectionByClass(
-			event.currentTarget.components["raycaster"].intersections,
-			"resizeHandler"
-		);
-
-		if (!grabElement && !resizeElement) {
-			return;
-		}
-		if (grabElement && !resizeElement) {
-			this.grabStart(grabElement.element);
-			return;
-		}
-
-		if (!grabElement && resizeElement) {
-			this.resizeStart(resizeElement.element);
-			return;
-		}
-		if (grabElement!.index < resizeElement!.index) {
-			this.grabStart(grabElement!.element);
-			return;
-		}
-		// else
-		this.resizeStart(resizeElement!.element);
-		return;
-	}
-	private gripUp(event: any): void {
-		if (this.grabData) {
-			this.grabEnd(event);
-		}
-		if (this.resizeData) {
-			this.resizeEnd();
-		}
 	}
 
 	// Grab functions
-	private grabStart(element: Entity): void {
+	private grabStart(event: any): void {
+		const element = getFirstIntersectionByClass(
+			event.currentTarget.components["raycaster"].intersections,
+			"grabbable"
+		)?.element;
+
+		if (!element || this.grabData) {
+			return;
+		}
+
 		this.grabData = {
 			grabbed: element,
 			grabbedParent: element.object3D.parent,
+			grapStartEvent: true,
 		};
 		element.emit("grabbing_start", undefined, false);
 		this.el.object3D.attach(element.object3D);
+
+		// remove grabStartEvent for the next js tick, so that the end event can be triggered
+		// This is important, if e.g. the same event is used for the start and end of a grab action
+		setTimeout(() => (this.grabData!.grapStartEvent = false), 1);
 	}
 
 	private grabEnd(event: any): void {
-		if (this.grabData) {
-			const { grabbed, grabbedParent } = this.grabData;
-			if (grabbedParent) {
-				grabbedParent.attach(grabbed.object3D);
-			} else {
-				this.el.sceneEl!.object3D.attach(grabbed.object3D);
-			}
-			const intersectionElement = getFirstIntersectionByClass(
-				event.currentTarget.components["raycaster"].intersections,
-				"droppable"
-			);
-			let dropped = false;
-			if (intersectionElement && intersectionElement.element !== grabbed) {
-				const dropEventData: DroppedEventData = {
-					element: grabbed,
-				};
-				intersectionElement.element.emit("dropped", dropEventData, false);
-				dropped = true;
-			}
-			const grabbingEndEventData: GrabbingEndEventData = {
-				dropped: dropped,
+		if (!this.grabData || this.grabData.grapStartEvent) {
+			return;
+		}
+		const { grabbed, grabbedParent } = this.grabData;
+		if (grabbedParent) {
+			grabbedParent.attach(grabbed.object3D);
+		} else {
+			this.el.sceneEl!.object3D.attach(grabbed.object3D);
+		}
+		const intersectionElement = getFirstIntersectionByClass(
+			event.currentTarget.components["raycaster"].intersections,
+			"droppable"
+		);
+		let dropped = false;
+		if (intersectionElement && intersectionElement.element !== grabbed) {
+			const dropEventData: DroppedEventData = {
 				element: grabbed,
 			};
-			grabbed.emit("grabbing_end", grabbingEndEventData, false);
-			this.grabData = undefined;
+			intersectionElement.element.emit("dropped", dropEventData, false);
+			dropped = true;
 		}
+		const grabbingEndEventData: GrabbingEndEventData = {
+			dropped: dropped,
+			element: grabbed,
+		};
+		grabbed.emit("grabbing_end", grabbingEndEventData, false);
+		this.grabData = undefined;
 	}
 
 	// resize functions
-	private resizeStart(element: Entity): void {
+	private resizeStart(event: any): void {
+		const element = getFirstIntersectionByClass(
+			event.currentTarget.components["raycaster"].intersections,
+			"grabbable"
+		)?.element;
+
+		if (!element) {
+			return;
+		}
 		let parent = element as Entity;
 		while (parent !== undefined) {
 			if (parent.classList.contains("resizeable")) {
