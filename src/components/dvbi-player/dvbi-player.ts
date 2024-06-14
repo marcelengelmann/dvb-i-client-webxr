@@ -188,9 +188,11 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 		this.videoControls.addEventListener("previousChannel", () =>
 			this.startNewStream(-1)
 		);
-		this.videoControls.addEventListener("closeStream", () =>
-			this.el.parentElement?.removeChild(this.el)
-		);
+		this.videoControls.addEventListener("closeStream", () => {
+			this.dashPlayer.destroy();
+			this.el.removeChild(this.videoElement);
+			this.el.parentElement?.removeChild(this.el);
+		});
 		this.videoControls.addEventListener("videoIsPlaying", (event: Event) => {
 			const e = event as CustomEvent;
 			if (e.detail.videoIsPlaying) {
