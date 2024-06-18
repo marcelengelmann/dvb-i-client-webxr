@@ -2,6 +2,12 @@ import { Entity, Schema } from "aframe";
 import { BaseComponent } from "../base-component/base-component";
 import { toComponent } from "../base-component/class-to-component";
 
+type Point = {
+	x: number;
+	y: number;
+	z: number;
+};
+
 export type GrabbingEndEventData = {
 	dropped: boolean;
 	element: Entity;
@@ -32,8 +38,9 @@ export class DVBIControllerComponent extends BaseComponent<DVBIControllerCompone
 	};
 
 	private resizeData?: {
+		intersectionPoint: Point;
 		resizingElement: Entity;
-		position: { x: number; y: number; z: number };
+		resizePlane: Entity;
 		xFactor: number;
 		zFactor: number;
 		yFactor: number;
@@ -41,21 +48,7 @@ export class DVBIControllerComponent extends BaseComponent<DVBIControllerCompone
 
 	public init(): void {
 		const raycasterObjects = [".clickable"];
-		if (this.data.grabstartevent && this.data.grabendevent) {
-			this.grabStart = this.grabStart.bind(this);
-			this.grabEnd = this.grabEnd.bind(this);
-			this.el.addEventListener(this.data.grabstartevent, this.grabStart);
-			this.el.addEventListener(this.data.grabendevent, this.grabEnd);
-			raycasterObjects.push(".grabbable", ".droppable");
-		} else if (
-			(!this.data.grabstartevent && this.data.grabendevent) ||
-			(this.data.grabstartevent && !this.data.grabendevent)
-		) {
-			console.error(
-				"You must define grab events for both, the start and end of the grab action"
-			);
-		}
-
+		// Must maintain the order of apllying resizing events before grabbing events
 		if (this.data.resizestartevent && this.data.resizeendevent) {
 			this.resizeStart = this.resizeStart.bind(this);
 			this.resizeEnd = this.resizeEnd.bind(this);
@@ -70,6 +63,21 @@ export class DVBIControllerComponent extends BaseComponent<DVBIControllerCompone
 				"You must define resize events for both, the start and end of the resize action"
 			);
 		}
+
+		if (this.data.grabstartevent && this.data.grabendevent) {
+			this.grabStart = this.grabStart.bind(this);
+			this.grabEnd = this.grabEnd.bind(this);
+			this.el.addEventListener(this.data.grabstartevent, this.grabStart);
+			this.el.addEventListener(this.data.grabendevent, this.grabEnd);
+			raycasterObjects.push(".grabbable", ".droppable");
+		} else if (
+			(!this.data.grabstartevent && this.data.grabendevent) ||
+			(this.data.grabstartevent && !this.data.grabendevent)
+		) {
+			console.error(
+				"You must define grab events for both, the start and end of the grab action"
+			);
+		}
 		this.el.setAttribute(
 			"raycaster",
 			`objects: ${raycasterObjects.join(", ")}`
@@ -78,6 +86,10 @@ export class DVBIControllerComponent extends BaseComponent<DVBIControllerCompone
 
 	// Grab functions
 	private grabStart(event: any): void {
+		// don't start grabbing event, if already resizing (Resizing priority is higher than grabbing)
+		if (this.resizeData) {
+			return;
+		}
 		const element = getFirstIntersectionByClass(
 			event.currentTarget.components["raycaster"].intersections,
 			"grabbable"
@@ -132,14 +144,30 @@ export class DVBIControllerComponent extends BaseComponent<DVBIControllerCompone
 
 	// resize functions
 	private resizeStart(event: any): void {
-		const element = getFirstIntersectionByClass(
+		const intersection = getFirstIntersectionByClass(
 			event.currentTarget.components["raycaster"].intersections,
-			"grabbable"
-		)?.element;
+			"resizeHandler"
+		);
+		const element = intersection?.element;
 
-		if (!element) {
+		if (!intersection || !element) {
 			return;
 		}
+
+		// Create a plane to use for resizing intersection with the raycaster
+		const geometry = new AFRAME.THREE.PlaneGeometry(200, 200);
+		const material = new AFRAME.THREE.MeshStandardMaterial({
+			opacity: 0,
+			transparent: true,
+		});
+		const mesh = new AFRAME.THREE.Mesh(geometry, material);
+		const resizePlane = document.createElement("a-entity");
+		resizePlane.setObject3D("mesh", mesh);
+		resizePlane.classList.add("resizeHandler");
+		resizePlane.setAttribute("position", element.getAttribute("position"));
+		resizePlane.setAttribute("rotation", element.getAttribute("rotation"));
+		element.parentElement?.appendChild(resizePlane);
+
 		let parent = element as Entity;
 		while (parent !== undefined) {
 			if (parent.classList.contains("resizeable")) {
@@ -148,51 +176,68 @@ export class DVBIControllerComponent extends BaseComponent<DVBIControllerCompone
 			parent = parent.parentElement as Entity;
 		}
 		const resizingElement = parent ?? element;
-		const position = this.el.object3D.position.clone();
-		// rotation = el.object3D.rotation.clone();
+
 		const elementRotation = resizingElement.getAttribute("rotation");
-		// can't grab elements from behind
 		let yFactor = Math.abs(1 - (90 - elementRotation.z) / 90);
 		let zFactor = Math.abs(1 - (90 - elementRotation.y) / 90);
-		let xFactor = Math.max(0, 1.5 - zFactor - yFactor);
+		let xFactor = Math.max(0, 1 - zFactor - yFactor);
 
 		const allAttribution = xFactor + yFactor + zFactor;
 
 		xFactor /= allAttribution;
 		yFactor /= allAttribution;
 		zFactor /= allAttribution;
+
 		this.resizeData = {
-			position: position,
+			intersectionPoint: intersection.point,
+			resizingElement: resizingElement,
+			resizePlane: resizePlane,
 			xFactor: xFactor,
 			yFactor: yFactor,
 			zFactor: zFactor,
-			resizingElement: resizingElement,
 		};
 	}
 	public tick(): void {
 		if (!this.resizeData) {
 			return;
 		}
-		const position = this.el.object3D.position.clone();
-		// const rotation = this.el.object3D.rotation.clone();
-		const resizeAmount =
-			(this.resizeData.position.x -
-				position.x) /*+ (this.rotation.x - rotation.x)*/ *
-				this.resizeData.xFactor +
-			(this.resizeData.position.y -
-				position.y) /*+ (this.rotation.y - rotation.y)*/ *
-				this.resizeData.yFactor +
-			(position.z -
-				this.resizeData.position.z) /*+ (this.rotation.z - rotation.z)*/ *
-				this.resizeData.zFactor;
-		if (resizeAmount !== 0) {
-			this.resizeData.resizingElement.emit("resizeBy", resizeAmount);
+		const intersection = getFirstIntersectionByClass(
+			(this.el.components.raycaster as any).intersections,
+			"resizeHandler"
+		);
+		if (!intersection) {
+			return;
 		}
-		this.resizeData.position = position;
-		// this.rotation = rotation;
+
+		const resizeAmount =
+			(this.resizeData.intersectionPoint.x -
+				intersection.point.x) /*+ (this.rotation.x - rotation.x)*/ *
+				this.resizeData.xFactor +
+			(this.resizeData.intersectionPoint.y -
+				intersection.point.y) /*+ (this.rotation.y - rotation.y)*/ *
+				this.resizeData.yFactor +
+			(intersection.point.z -
+				this.resizeData.intersectionPoint
+					.z) /*+ (this.rotation.z - rotation.z)*/ *
+				this.resizeData.zFactor;
+
+		// let distance = calculateDistance(
+		// 	this.resizeData.intersectionPoint,
+		// 	intersection.point
+		// );
+
+		if (resizeAmount === 0) {
+			return;
+		}
+
+		this.resizeData.resizingElement.emit("resizeBy", -1 * resizeAmount);
+		this.resizeData.intersectionPoint = intersection.point;
 	}
 
 	private resizeEnd(): void {
+		this.resizeData?.resizePlane.parentElement?.removeChild(
+			this.resizeData.resizePlane
+		);
 		this.resizeData = undefined;
 	}
 }
@@ -200,7 +245,13 @@ export class DVBIControllerComponent extends BaseComponent<DVBIControllerCompone
 function getFirstIntersectionByClass(
 	intersections: any[],
 	className: string
-): { element: Entity; index: number } | undefined {
+):
+	| {
+			element: Entity;
+			index: number;
+			point: Point;
+	  }
+	| undefined {
 	const objectIndex = intersections.findIndex((intersection) =>
 		intersection.object.el.classList.contains(className)
 	);
@@ -209,6 +260,7 @@ function getFirstIntersectionByClass(
 	}
 
 	return {
+		point: intersections[objectIndex].point,
 		element: intersections[objectIndex].object.el,
 		index: objectIndex,
 	};

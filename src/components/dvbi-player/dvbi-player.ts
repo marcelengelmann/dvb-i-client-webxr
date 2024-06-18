@@ -8,7 +8,9 @@ import { DroppedEventData } from "../controls/dvbi-controller";
 import streamErrorImage from "/src/assets/stream-error.png";
 import streamLoadingImage from "/src/assets/stream-loading.png";
 
-const DEFAULT_WIDTH = 4;
+export const DVBI_PLAYER_DEFAULT_WIDTH = 3;
+const MAX_SCALE_AMOUNT = 2;
+const MIN_SCALE_AMOUNT = 0.15;
 
 AFRAME.registerPrimitive("a-dvbi-player", {
 	defaultComponents: {
@@ -35,7 +37,7 @@ type DVBIPlayerComponentData = {
 };
 export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> {
 	static schema: Schema<DVBIPlayerComponentData> = {
-		width: { type: "number", default: DEFAULT_WIDTH },
+		width: { type: "number", default: DVBI_PLAYER_DEFAULT_WIDTH },
 		muted: { type: "boolean", default: false },
 		channelnumber: { type: "number", default: -1 },
 		distancebasedvolume: { type: "boolean", default: true },
@@ -53,8 +55,8 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 
 	public async init() {
 		this.calcVolumeFromDistance = this.calcVolumeFromDistance.bind(this);
-		const width = DEFAULT_WIDTH;
-		const height = DEFAULT_WIDTH / (16 / 9);
+		const width = DVBI_PLAYER_DEFAULT_WIDTH;
+		const height = DVBI_PLAYER_DEFAULT_WIDTH / (16 / 9);
 		this.defaultChannels = await DVBI_CLIENT.getDefaultChannels();
 
 		this.init3DObject(width, height);
@@ -66,7 +68,12 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 		// create the video controls
 		this.createVideoControls(this.data.muted);
 
-		const scaleAmount = this.data.width / DEFAULT_WIDTH;
+		let scaleAmount = this.data.width / DVBI_PLAYER_DEFAULT_WIDTH;
+		if (scaleAmount < MIN_SCALE_AMOUNT) {
+			scaleAmount = MIN_SCALE_AMOUNT;
+		} else if (scaleAmount > MAX_SCALE_AMOUNT) {
+			scaleAmount = MAX_SCALE_AMOUNT;
+		}
 		this.el.setAttribute("scale", `${scaleAmount} ${scaleAmount} 1`);
 
 		// calc volume initially if distant based volume is used
@@ -95,9 +102,13 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 		}
 
 		if (this.data.width !== oldData.width) {
-			const scaleAmount = this.data.width / DEFAULT_WIDTH;
+			let scaleAmount = this.data.width / DVBI_PLAYER_DEFAULT_WIDTH;
+			if (scaleAmount < MIN_SCALE_AMOUNT) {
+				scaleAmount = MIN_SCALE_AMOUNT;
+			} else if (scaleAmount > MAX_SCALE_AMOUNT) {
+				scaleAmount = MAX_SCALE_AMOUNT;
+			}
 			this.el.setAttribute("scale", `${scaleAmount} ${scaleAmount} 1`);
-			this.videoControls.object3D.position.setZ(10);
 		}
 
 		if (this.data.channelnumber !== oldData.channelnumber) {
@@ -160,7 +171,7 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 
 		this.el.addEventListener("resizeBy", (event: Event) => {
 			const resizeBy = (event as CustomEvent).detail as number;
-			this.el.setAttribute("width", this.data.width - resizeBy);
+			this.el.setAttribute("width", this.data.width + resizeBy * 2);
 		});
 	}
 
@@ -181,6 +192,10 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 			"channellogo",
 			"" +
 				this.defaultChannels[this.currentChannelIndex].channel.channelImageUrl
+		);
+		this.videoControls.setAttribute(
+			"channelname",
+			"" + this.defaultChannels[this.currentChannelIndex].channel.name
 		);
 		this.videoControls.addEventListener("nextChannel", () =>
 			this.startNewStream(1)
@@ -208,6 +223,10 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 		this.videoControls.setAttribute(
 			"channellogo",
 			this.defaultChannels[this.currentChannelIndex].channel.channelImageUrl
+		);
+		this.videoControls.setAttribute(
+			"channelname",
+			this.defaultChannels[this.currentChannelIndex].channel.name
 		);
 		this.el.appendChild(this.videoControls);
 	}
@@ -276,6 +295,10 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 		this.videoControls.setAttribute(
 			"channellogo",
 			this.defaultChannels[this.currentChannelIndex].channel.channelImageUrl
+		);
+		this.videoControls.setAttribute(
+			"channelname",
+			this.defaultChannels[this.currentChannelIndex].channel.name
 		);
 		if (nextStreamUrl === undefined) {
 			console.error(

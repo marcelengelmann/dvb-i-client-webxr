@@ -2,6 +2,7 @@ import { Entity, Schema } from "aframe";
 import { getCorsProxyUrl } from "../../../utils/corsproxy";
 import { BaseComponent } from "../../base-component/base-component";
 import { toComponent } from "../../base-component/class-to-component";
+import { DVBI_PLAYER_DEFAULT_WIDTH } from "../dvbi-player";
 import closeImage from "/src/assets/close.png";
 import nextChannelImage from "/src/assets/nextChannel.png";
 import pauseImage from "/src/assets/pause.png";
@@ -19,6 +20,7 @@ AFRAME.registerPrimitive("a-dvbi-player-controls", {
 		playing: "dvbi-player-controls.playing",
 		muted: "dvbi-player-controls.muted",
 		channellogo: "dvbi-player-controls.channellogo",
+		channelname: "dvbi-player-controls.channelname",
 	},
 });
 
@@ -26,6 +28,7 @@ type DVBIPlayerControlsComponentData = {
 	playing: boolean;
 	muted: boolean;
 	channellogo: string;
+	channelname: string;
 };
 type ControlElementNames =
 	| "PreviousChannel"
@@ -34,12 +37,14 @@ type ControlElementNames =
 	| "Mute"
 	| "Resize"
 	| "Close"
-	| "Logo";
+	| "Logo"
+	| "ChannelName";
 export class DVBIPlayerControlsComponent extends BaseComponent<DVBIPlayerControlsComponentData> {
 	static schema: Schema<DVBIPlayerControlsComponentData> = {
 		playing: { type: "boolean", default: true },
 		muted: { type: "boolean", default: false },
 		channellogo: { type: "string", default: "" },
+		channelname: { type: "string", default: "" },
 	};
 	private buttonSize!: number;
 	private controlElements = new Map<ControlElementNames, Entity>();
@@ -52,8 +57,8 @@ export class DVBIPlayerControlsComponent extends BaseComponent<DVBIPlayerControl
 		this.onNextChannelClick = this.onNextChannelClick.bind(this);
 		this.onMuteButtonClick = this.onMuteButtonClick.bind(this);
 		this.onCloseButtonClick = this.onCloseButtonClick.bind(this);
-		const defaultWidth = 4;
-		const defaultHeight = 2.25;
+		const defaultWidth = DVBI_PLAYER_DEFAULT_WIDTH;
+		const defaultHeight = DVBI_PLAYER_DEFAULT_WIDTH / 1.778;
 		const uiHeight = defaultHeight / 11;
 		this.buttonSize = uiHeight / 1.25;
 
@@ -124,7 +129,7 @@ export class DVBIPlayerControlsComponent extends BaseComponent<DVBIPlayerControl
 		const muteButton = this.createControlButton(
 			this.buttonSize,
 			this.data.muted ? mutedImage : unmutedImage,
-			-1.6,
+			-DVBI_PLAYER_DEFAULT_WIDTH / 2.5,
 			this.controlsAreaBottom,
 			this.onMuteButtonClick
 		);
@@ -135,7 +140,7 @@ export class DVBIPlayerControlsComponent extends BaseComponent<DVBIPlayerControl
 		const resizePlane = this.createControlButton(
 			this.buttonSize,
 			resizeImage,
-			1.9,
+			DVBI_PLAYER_DEFAULT_WIDTH / 2.105,
 			this.controlsAreaBottom
 		);
 		resizePlane.setAttribute("rotation", "0 0 -90");
@@ -146,7 +151,7 @@ export class DVBIPlayerControlsComponent extends BaseComponent<DVBIPlayerControl
 		const closeButton = this.createControlButton(
 			this.buttonSize,
 			closeImage,
-			1.8,
+			DVBI_PLAYER_DEFAULT_WIDTH / 2.12,
 			this.controlsAreaTop,
 			this.onCloseButtonClick
 		);
@@ -156,13 +161,23 @@ export class DVBIPlayerControlsComponent extends BaseComponent<DVBIPlayerControl
 		const logo = this.createControlButton(
 			this.buttonSize,
 			"",
-			-1.75,
+			-DVBI_PLAYER_DEFAULT_WIDTH / 2.286,
 			this.controlsAreaTop
 		);
 
 		logo.setAttribute("width", this.buttonSize * 2.5);
-
 		this.controlElements.set("Logo", logo);
+
+		const channelName = document.createElement("a-text");
+		channelName.setAttribute(
+			"width",
+			DVBI_PLAYER_DEFAULT_WIDTH - this.buttonSize * 3.8
+		);
+		channelName.setAttribute("height", "0");
+		channelName.setAttribute("align", "center");
+		channelName.setAttribute("position", `0 0 0.01`);
+		this.controlsAreaTop.appendChild(channelName);
+		this.controlElements.set("ChannelName", channelName);
 	}
 
 	public async update(oldData: DVBIPlayerControlsComponentData) {
@@ -195,6 +210,10 @@ export class DVBIPlayerControlsComponent extends BaseComponent<DVBIPlayerControl
 			logoElement.setAttribute("src", "");
 			logoElement.setAttribute("src", getCorsProxyUrl(this.data.channellogo));
 			console.log(getCorsProxyUrl(this.data.channellogo));
+		}
+		if (this.data.channelname != oldData.channelname) {
+			const channelElement = this.controlElements.get("ChannelName")!;
+			channelElement.setAttribute("value", this.data.channelname);
 		}
 	}
 	private create3DObjects(width: number, height: number) {
