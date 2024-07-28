@@ -9,15 +9,15 @@ import { GrabbingEndEventData } from "../controls/dvbi-controller";
 import nextChannelButton from "/src/assets/nextChannel.png";
 import previousChannelButton from "/src/assets/previousChannel.png";
 
-AFRAME.registerPrimitive("a-dvbi-player-channels-menu", {
+AFRAME.registerPrimitive("a-dvbi-channels-menu", {
 	defaultComponents: {
-		"dvbi-player-channels-menu": {},
+		"dvbi-channels-menu": {},
 		position: { x: 0, y: 1.6, z: -2 },
 	},
 	mappings: {
-		width: "dvbi-player-channels-menu.width",
-		backgroundcolor: "dvbi-player-channels-menu.backgroundcolor",
-		textcolor: "dvbi-player-channels-menu.textcolor",
+		width: "dvbi-channels-menu.width",
+		backgroundcolor: "dvbi-channels-menu.backgroundcolor",
+		textcolor: "dvbi-channels-menu.textcolor",
 	},
 });
 
@@ -30,7 +30,7 @@ type ChannelsMenuData = {
 export class ChannelsMenuComponent extends BaseComponent<ChannelsMenuData> {
 	static schema: Schema<ChannelsMenuData> = {
 		width: { type: "number", default: 1 },
-		backgroundcolor: { type: "string", default: "grey" },
+		backgroundcolor: { type: "string", default: "gray" },
 		textcolor: { type: "string", default: "black" },
 	};
 	private channelList!: Channels;
@@ -219,6 +219,6 @@ export class ChannelsMenuComponent extends BaseComponent<ChannelsMenuData> {
 }
 
 AFRAME.registerComponent(
-	"dvbi-player-channels-menu",
+	"dvbi-channels-menu",
 	toComponent(ChannelsMenuComponent)
 );

@@ -48,7 +48,7 @@ export class DVBIControllerComponent extends BaseComponent<DVBIControllerCompone
 
 	public init(): void {
 		const raycasterObjects = [".clickable"];
-		// Must maintain the order of apllying resizing events before grabbing events
+		// Must maintain the order of applying resizing events before grabbing events
 		if (this.data.resizestartevent && this.data.resizeendevent) {
 			this.resizeStart = this.resizeStart.bind(this);
 			this.resizeEnd = this.resizeEnd.bind(this);

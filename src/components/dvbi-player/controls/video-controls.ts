@@ -140,7 +140,7 @@ export class DVBIPlayerControlsComponent extends BaseComponent<DVBIPlayerControl
 		const resizePlane = this.createControlButton(
 			this.buttonSize,
 			resizeImage,
-			DVBI_PLAYER_DEFAULT_WIDTH / 2.105,
+			DVBI_PLAYER_DEFAULT_WIDTH / 2.12,
 			this.controlsAreaBottom
 		);
 		resizePlane.setAttribute("rotation", "0 0 -90");

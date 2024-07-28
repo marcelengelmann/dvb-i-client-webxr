@@ -26,12 +26,6 @@ export class Trash extends BaseComponent<TrashData> {
 			eventData.element.parentElement?.removeChild(eventData.element);
 		});
 	}
-
-	public update(oldData: TrashData): void {
-		if (Object.keys(oldData).length === 0) {
-			return;
-		}
-	}
 }
 
 AFRAME.registerComponent("dvbi-player-trash", toComponent(Trash));

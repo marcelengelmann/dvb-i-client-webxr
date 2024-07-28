@@ -54,6 +54,8 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 	resizeHandlerPlane: any;
 
 	public async init() {
+		console.log("init player");
+
 		this.calcVolumeFromDistance = this.calcVolumeFromDistance.bind(this);
 		const width = DVBI_PLAYER_DEFAULT_WIDTH;
 		const height = DVBI_PLAYER_DEFAULT_WIDTH / (16 / 9);
