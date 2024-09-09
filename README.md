@@ -29,6 +29,14 @@ npm start
 
 4. Open the dev server's url in your browser
 
+### Build the project
+1. Build the project using vite with the npm command
+```bash
+npm run build
+```
+
+2. Use the build files in the ./dist directory
+
 ## GitHub Workflow
 The repository contains a GitHub Workflow to publish the current project state to GitHub Pages. The workflow is triggered for each push to the main branch.
 
