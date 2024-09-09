@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <script>console.log("script head", performance.now())</script>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <script type="module" src="src/main.ts"></script>
+  <script type="module" src="src/evaluation/evaluation.ts"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DVB-I Client for WebXR</title>
+</head>
+
+<body>
+
+  <a-scene stats id="scene" background="color: lightgrey" cursor="rayOrigin: mouse" xr-mode-ui="XRMode: xr">
+    <a-camera id="camera" position="0 1.6 0">
+    </a-camera>
+    <!-- controllers -->
+    <a-entity laser-controls="hand: left;" hand-controls="hand: left;"
+      dvbi-controller="grabstartevent: gripdown; grabendevent: gripup; resizestartevent: gripdown; resizeendevent: gripup;"></a-entity>
+    <a-entity laser-controls="hand: right;" hand-controls="hand: right;"
+      dvbi-controller="grabstartevent: gripdown; grabendevent: gripup; resizestartevent: gripdown; resizeendevent: gripup;"></a-entity>
+
+    <a-entity spawn-stream-button></a-entity>
+  </a-scene>
+
+</body>
+
+</html>

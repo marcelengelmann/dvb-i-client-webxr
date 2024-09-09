@@ -6,6 +6,8 @@ import "./components/position-listener/position-listener";
 import "./components/trash/trash";
 import { DVBIClient } from "./dvb-i-client/dvb-i-client";
 
+console.log("main script start", performance.now());
+
 export const DVBI_CLIENT = new DVBIClient(
 	"https://dvb-i.net/production/services.php/de"
 );

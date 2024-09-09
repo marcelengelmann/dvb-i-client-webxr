@@ -1,3 +1,4 @@
+import { resolve } from "path";
 import checker from "vite-plugin-checker";
 
 const fullReloadAlways = {
@@ -15,5 +16,11 @@ export default {
 	base: "/dvb-i-client-webxr/",
 	build: {
 		sourcemap: true,
+		rollupOptions: {
+			input: {
+				main: resolve(__dirname, "index.html"),
+				evaluation: resolve(__dirname, "evaluation.html"),
+			},
+		},
 	},
 };

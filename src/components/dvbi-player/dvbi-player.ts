@@ -259,6 +259,7 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 		});
 		this.dashPlayer.on("canPlay", () => {
 			this.showVideo();
+			console.log("Stream playing", performance.now());
 		});
 	}
 
