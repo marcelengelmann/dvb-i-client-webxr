@@ -1,11 +1,31 @@
 <!doctype html>
 <html lang="en">
-
 <head>
-  <script>console.log("script head", performance.now())</script>
+  <script>
+    let logMessages = [];
+    let loggingEnabled = false;
+    window.addLogMessage = (message) => {
+      if(loggingEnabled){
+        logMessage(message);
+        return;
+      }
+      logMessages.push(message);
+    }
+
+    window.enableLogging = () => {
+      loggingEnabled =true;
+      logMessages.forEach(log => {logMessage(log)})
+    }
+
+    function logMessage(message){
+      AFRAME.log(message);
+    }
+  </script>
+  <script>window.addLogMessage("script head " + performance.now())</script>
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="/vite.svg" />
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <script src="https://unpkg.com/aframe-log-component/dist/aframe-log-component.min.js"></script>
   <script type="module" src="src/main.ts"></script>
   <script type="module" src="src/evaluation/evaluation.ts"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -22,11 +42,15 @@
       dvbi-controller="grabstartevent: gripdown; grabendevent: gripup; resizestartevent: gripdown; resizeendevent: gripup;"></a-entity>
     <a-entity laser-controls="hand: right;" hand-controls="hand: right;"
       dvbi-controller="grabstartevent: gripdown; grabendevent: gripup; resizestartevent: gripdown; resizeendevent: gripup;"></a-entity>
-
+      <a-dvbi-player position="0.0 1.6 -2.0" muted="true" camera-position-listener channelnumber="2"></a-dvbi-player>
     <a-entity spawn-stream-button></a-entity>
+    <a-entity log geometry="primitive: plane" material="color: #111" text="color: lightgreen" position="3 1.6 -2" text="width: 4" width="4" height="4"></a-entity>
   </a-scene>
 
 </body>
-<script>console.log("script after body", performance.now())</script>
-
+<script>window.addLogMessage("script after body " + performance.now())</script>
+<script> 
+ setTimeout(() => {
+  window.enableLogging()}, 5000);
+</script>
 </html>

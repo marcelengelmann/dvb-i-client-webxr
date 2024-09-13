@@ -66,12 +66,12 @@ export class DVBIPlayerControlsComponent extends BaseComponent<DVBIPlayerControl
 
 		this.controlsAreaBottom.setAttribute(
 			"position",
-			`0 ${-(defaultHeight / 2) + uiHeight / 2} 0.03`
+			`0 ${-(defaultHeight / 2) + uiHeight / 2} 0.05`
 		);
 
 		this.controlsAreaTop.setAttribute(
 			"position",
-			`0 ${defaultHeight / 2 - uiHeight / 2} 0.03`
+			`0 ${defaultHeight / 2 - uiHeight / 2} 0.05`
 		);
 
 		// only show controls, when looking at the bottom of the stream

@@ -43,8 +43,6 @@ export class SpawnStreamButton extends BaseComponent {
 		for (let i = 0; i < this.streams.length; i++) {
 			const stream = this.streams[i];
 			stream.setAttribute("position", `${posX} ${posY} ${z_pos}`);
-			console.log(`${posX} ${posY} ${z_pos}`);
-
 			if ((i + 1) % requ_rows == 0) {
 				posX += this.width;
 				posY = startY;

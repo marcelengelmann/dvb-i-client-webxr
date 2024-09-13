@@ -7,12 +7,9 @@ import { ServiceList } from "./models/service-list-backend-data.model";
 export class DVBIClient {
 	private channelList: ChannelList | undefined;
 	constructor(private serviceListUrl: string) {
-		console.log("ctor");
 	}
 
 	public async getDefaultChannels(refetch: boolean = false): Promise<Channels> {
-		console.log("Get default channels");
-
 		const channelList = await this.retrieveChannelList(refetch);
 		if (channelList === null || channelList.defaultRegion === undefined) {
 			return [];
