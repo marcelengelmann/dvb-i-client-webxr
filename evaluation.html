@@ -26,6 +26,9 @@
   <link rel="icon" type="image/svg+xml" href="/vite.svg" />
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script src="https://unpkg.com/aframe-log-component/dist/aframe-log-component.min.js"></script>
+  <script src="https://unpkg.com/@fern-solutions/aframe-extra-stats/dist/extra-stats.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/kylebakerio/vr-super-stats@2.0.1/vr-super-stats.js"></script>
+
   <script type="module" src="src/main.ts"></script>
   <script type="module" src="src/evaluation/evaluation.ts"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -34,7 +37,7 @@
 
 <body>
 
-  <a-scene stats id="scene" background="color: lightgrey" cursor="rayOrigin: mouse" xr-mode-ui="XRMode: xr">
+  <a-scene stats extra-stats vr-super-stats id="scene" background="color: lightgrey" cursor="rayOrigin: mouse" xr-mode-ui="XRMode: xr">
     <a-camera id="camera" position="0 1.6 0">
     </a-camera>
     <!-- controllers -->
