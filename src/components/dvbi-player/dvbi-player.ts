@@ -315,6 +315,9 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 
 		(this.dashPlayer as dashjs.MediaPlayerClass).attachSource(nextStreamUrl);
 		this.el.getElementsByTagName("a-dvbi-player-controls")[0].setAttribute("playing", "true");
+
+		console.log(nextStreamUrl);
+		
 	}
 
 	private showLoading() {
