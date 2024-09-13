@@ -43,8 +43,8 @@
     <a-entity laser-controls="hand: right;" hand-controls="hand: right;"
       dvbi-controller="grabstartevent: gripdown; grabendevent: gripup; resizestartevent: gripdown; resizeendevent: gripup;"></a-entity>
       <a-dvbi-player position="0.0 1.6 -2.0" muted="true" camera-position-listener channelnumber="2"></a-dvbi-player>
-    <a-entity spawn-stream-button></a-entity>
-    <a-entity log geometry="primitive: plane" material="color: #111" text="color: lightgreen" position="3 1.6 -2" text="width: 4" width="4" height="4"></a-entity>
+    <a-entity class="clickable" spawn-stream-button></a-entity>
+    <a-entity class="grabbable" log geometry="primitive: plane" material="color: #111" text="color: lightgreen" position="3 1.6 -2" text="width: 5" width="4" height="4"></a-entity>
   </a-scene>
 
 </body>

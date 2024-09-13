@@ -144,7 +144,7 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 		this.aVideo.setAttribute("height", "" + componentHeight);
 		this.aVideo.setAttribute("src", "#" + this.videoElement.id);
 		this.aVideo.setAttribute("visible", "false");
-		this.aVideo.setAttribute("position", "0 0 0.04");
+		this.aVideo.setAttribute("position", "0 0 0.05");
 		this.el.appendChild(this.aVideo);
 	}
 

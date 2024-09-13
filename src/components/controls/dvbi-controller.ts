@@ -105,6 +105,8 @@ export class DVBIControllerComponent extends BaseComponent<DVBIControllerCompone
 			grapStartEvent: true,
 		};
 		element.emit("grabbing_start", undefined, false);
+		this.el.sceneEl!.object3D.attach(element.object3D);
+
 		this.el.object3D.attach(element.object3D);
 
 		// remove grabStartEvent for the next js tick, so that the end event can be triggered
