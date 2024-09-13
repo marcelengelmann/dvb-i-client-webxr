@@ -54,8 +54,6 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 	resizeHandlerPlane: any;
 
 	public async init() {
-		console.log("init player");
-
 		this.calcVolumeFromDistance = this.calcVolumeFromDistance.bind(this);
 		const width = DVBI_PLAYER_DEFAULT_WIDTH;
 		const height = DVBI_PLAYER_DEFAULT_WIDTH / (16 / 9);
@@ -146,6 +144,7 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 		this.aVideo.setAttribute("height", "" + componentHeight);
 		this.aVideo.setAttribute("src", "#" + this.videoElement.id);
 		this.aVideo.setAttribute("visible", "false");
+		this.aVideo.setAttribute("position", "0 0 0.02");
 		this.el.appendChild(this.aVideo);
 	}
 
@@ -249,6 +248,7 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 				this.defaultChannels[this.currentChannelIndex].channel.dashStreamUrl;
 		}
 		this.dashPlayer = dashjs.MediaPlayer().create();
+		console.log("Dash init start", performance.now());
 		this.dashPlayer.initialize(this.videoElement, firstStreamUrl ?? "", true);
 		if (muted) {
 			this.dashPlayer.setMute(true);
@@ -314,6 +314,7 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 		}
 
 		(this.dashPlayer as dashjs.MediaPlayerClass).attachSource(nextStreamUrl);
+		this.el.getElementsByTagName("a-dvbi-player-controls")[0].setAttribute("playing", "true");
 	}
 
 	private showLoading() {

@@ -11,3 +11,5 @@ console.log("main script start", performance.now());
 export const DVBI_CLIENT = new DVBIClient(
 	"https://dvb-i.net/production/services.php/de"
 );
+
+console.log((await DVBI_CLIENT.getDefaultChannels())[1].channel.dashStreamUrl);
