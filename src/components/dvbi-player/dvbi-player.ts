@@ -248,7 +248,6 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 				this.defaultChannels[this.currentChannelIndex].channel.dashStreamUrl;
 		}
 		this.dashPlayer = dashjs.MediaPlayer().create();
-		(window as any).addLogMessage("Dash init start " + performance.now());
 		this.dashPlayer.initialize(this.videoElement, firstStreamUrl ?? "", true);
 		if (muted) {
 			this.dashPlayer.setMute(true);
@@ -259,7 +258,6 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 		});
 		this.dashPlayer.on("canPlay", () => {
 			this.showVideo();
-			(window as any).addLogMessage("Stream playing " + performance.now());
 		});
 	}
 
@@ -314,10 +312,9 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 		}
 
 		(this.dashPlayer as dashjs.MediaPlayerClass).attachSource(nextStreamUrl);
-		this.el.getElementsByTagName("a-dvbi-player-controls")[0].setAttribute("playing", "true");
-
-		console.log(nextStreamUrl);
-		
+		this.el
+			.getElementsByTagName("a-dvbi-player-controls")[0]
+			.setAttribute("playing", "true");
 	}
 
 	private showLoading() {

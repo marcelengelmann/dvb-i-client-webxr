@@ -209,7 +209,6 @@ export class DVBIPlayerControlsComponent extends BaseComponent<DVBIPlayerControl
 			const logoElement = this.controlElements.get("Logo")!;
 			logoElement.setAttribute("src", "");
 			logoElement.setAttribute("src", getCorsProxyUrl(this.data.channellogo));
-			console.log(getCorsProxyUrl(this.data.channellogo));
 		}
 		if (this.data.channelname != oldData.channelname) {
 			const channelElement = this.controlElements.get("ChannelName")!;
@@ -264,8 +263,6 @@ export class DVBIPlayerControlsComponent extends BaseComponent<DVBIPlayerControl
 		this.el.emit("previousChannel", undefined, false);
 	}
 	private onNextChannelClick() {
-		console.log("Clicked next channel button ", performance.now());
-
 		this.el.emit("nextChannel", undefined, false);
 	}
 	private onMuteButtonClick() {
