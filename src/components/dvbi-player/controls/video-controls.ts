@@ -264,6 +264,8 @@ export class DVBIPlayerControlsComponent extends BaseComponent<DVBIPlayerControl
 		this.el.emit("previousChannel", undefined, false);
 	}
 	private onNextChannelClick() {
+		console.log("Clicked next channel button ", performance.now());
+
 		this.el.emit("nextChannel", undefined, false);
 	}
 	private onMuteButtonClick() {
