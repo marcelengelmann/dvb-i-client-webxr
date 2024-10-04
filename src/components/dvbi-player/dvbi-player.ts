@@ -182,6 +182,7 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 		this.informationImage.setAttribute("src", streamLoadingImage);
 		this.informationImage.setAttribute("width", "" + width);
 		this.informationImage.setAttribute("height", "" + height);
+		this.informationImage.setAttribute("position", "0 0 0.05");
 		this.el.appendChild(this.informationImage);
 	}
 
