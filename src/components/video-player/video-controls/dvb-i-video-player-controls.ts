@@ -2,7 +2,7 @@ import { Entity, Schema } from "aframe";
 import { getCorsProxyUrl } from "../../../utils/corsproxy";
 import { BaseComponent } from "../../base-component/base-component";
 import { toComponent } from "../../base-component/class-to-component";
-import { DVBI_PLAYER_DEFAULT_WIDTH } from "../dvbi-player";
+import { DVBI_PLAYER_DEFAULT_WIDTH } from "../dvb-i-video-player";
 import closeImage from "/src/assets/close.png";
 import nextChannelImage from "/src/assets/nextChannel.png";
 import pauseImage from "/src/assets/pause.png";
@@ -12,19 +12,19 @@ import resizeImage from "/src/assets/resize.png";
 import mutedImage from "/src/assets/volume-off.png";
 import unmutedImage from "/src/assets/volume.png";
 
-AFRAME.registerPrimitive("a-dvbi-player-controls", {
+AFRAME.registerPrimitive("a-dvb-i-video-player-controls", {
 	defaultComponents: {
-		"dvbi-player-controls": {},
+		"dvb-i-video-player-controls": {},
 	},
 	mappings: {
-		playing: "dvbi-player-controls.playing",
-		muted: "dvbi-player-controls.muted",
-		channellogo: "dvbi-player-controls.channellogo",
-		channelname: "dvbi-player-controls.channelname",
+		playing: "dvb-i-video-player-controls.playing",
+		muted: "dvb-i-video-player-controls.muted",
+		channellogo: "dvb-i-video-player-controls.channellogo",
+		channelname: "dvb-i-video-player-controls.channelname",
 	},
 });
 
-type DVBIPlayerControlsComponentData = {
+type DVBIVideoPlayerControlsComponentData = {
 	playing: boolean;
 	muted: boolean;
 	channellogo: string;
@@ -39,8 +39,8 @@ type ControlElementNames =
 	| "Close"
 	| "Logo"
 	| "ChannelName";
-export class DVBIPlayerControlsComponent extends BaseComponent<DVBIPlayerControlsComponentData> {
-	static schema: Schema<DVBIPlayerControlsComponentData> = {
+export class DVBIVideoPlayerControlsComponent extends BaseComponent<DVBIVideoPlayerControlsComponentData> {
+	static schema: Schema<DVBIVideoPlayerControlsComponentData> = {
 		playing: { type: "boolean", default: true },
 		muted: { type: "boolean", default: false },
 		channellogo: { type: "string", default: "" },
@@ -180,7 +180,7 @@ export class DVBIPlayerControlsComponent extends BaseComponent<DVBIPlayerControl
 		this.controlElements.set("ChannelName", channelName);
 	}
 
-	public async update(oldData: DVBIPlayerControlsComponentData) {
+	public async update(oldData: DVBIVideoPlayerControlsComponentData) {
 		if (this.data.muted !== oldData.muted) {
 			const muteButton = this.controlElements.get("Mute")!;
 			if (this.data.muted) {
@@ -274,6 +274,6 @@ export class DVBIPlayerControlsComponent extends BaseComponent<DVBIPlayerControl
 }
 
 AFRAME.registerComponent(
-	"dvbi-player-controls",
-	toComponent(DVBIPlayerControlsComponent)
+	"dvb-i-video-player-controls",
+	toComponent(DVBIVideoPlayerControlsComponent)
 );

@@ -269,6 +269,6 @@ function getFirstIntersectionByClass(
 }
 
 AFRAME.registerComponent(
-	"dvbi-controller",
+	"dvb-i-controller",
 	toComponent(DVBIControllerComponent)
 );

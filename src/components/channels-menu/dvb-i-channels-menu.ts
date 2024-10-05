@@ -5,19 +5,19 @@ import { BaseComponent } from "../base-component/base-component";
 import { toComponent } from "../base-component/class-to-component";
 
 import { getCorsProxyUrl } from "../../utils/corsproxy";
-import { GrabbingEndEventData } from "../controls/dvbi-controller";
+import { GrabbingEndEventData } from "../controls/dvb-i-controller";
 import nextChannelButton from "/src/assets/nextChannel.png";
 import previousChannelButton from "/src/assets/previousChannel.png";
 
-AFRAME.registerPrimitive("a-dvbi-channels-menu", {
+AFRAME.registerPrimitive("a-dvb-i-channels-menu", {
 	defaultComponents: {
-		"dvbi-channels-menu": {},
+		"dvb-i-channels-menu": {},
 		position: { x: 0, y: 1.6, z: -2 },
 	},
 	mappings: {
-		width: "dvbi-channels-menu.width",
-		backgroundcolor: "dvbi-channels-menu.backgroundcolor",
-		textcolor: "dvbi-channels-menu.textcolor",
+		width: "dvb-i-channels-menu.width",
+		backgroundcolor: "dvb-i-channels-menu.backgroundcolor",
+		textcolor: "dvb-i-channels-menu.textcolor",
 	},
 });
 
@@ -153,7 +153,7 @@ export class ChannelsMenuComponent extends BaseComponent<ChannelsMenuData> {
 				if (eventData.dropped) {
 					return;
 				}
-				const newPlayer = document.createElement("a-dvbi-player");
+				const newPlayer = document.createElement("a-dvb-i-video-player");
 				const worldPos = new AFRAME.THREE.Vector3();
 				worldPos.setFromMatrixPosition(
 					this.grabbableChannelElement.object3D.matrixWorld
@@ -219,6 +219,6 @@ export class ChannelsMenuComponent extends BaseComponent<ChannelsMenuData> {
 }
 
 AFRAME.registerComponent(
-	"dvbi-channels-menu",
+	"dvb-i-channels-menu",
 	toComponent(ChannelsMenuComponent)
 );

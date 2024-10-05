@@ -4,7 +4,7 @@ import { Channels } from "../../dvb-i-client/models/channel-region.model";
 import { DVBI_CLIENT } from "../../main";
 import { BaseComponent } from "../base-component/base-component";
 import { toComponent } from "../base-component/class-to-component";
-import { DroppedEventData } from "../controls/dvbi-controller";
+import { DroppedEventData } from "../controls/dvb-i-controller";
 import streamErrorImage from "/src/assets/stream-error.png";
 import streamLoadingImage from "/src/assets/stream-loading.png";
 
@@ -12,22 +12,22 @@ export const DVBI_PLAYER_DEFAULT_WIDTH = 3;
 const MAX_SCALE_AMOUNT = 2;
 const MIN_SCALE_AMOUNT = 0.15;
 
-AFRAME.registerPrimitive("a-dvbi-player", {
+AFRAME.registerPrimitive("a-dvb-i-video-player", {
 	defaultComponents: {
-		"dvbi-player": {},
+		"dvb-i-video-player": {},
 		position: { x: 0, y: 1.6, z: -2 },
 	},
 	mappings: {
-		width: "dvbi-player.width",
-		muted: "dvbi-player.muted",
-		channelnumber: "dvbi-player.channelnumber",
-		distancebasedvolume: "dvbi-player.distancebasedvolume",
-		maxaudiodistance: "dvbi-player.maxaudiodistance",
-		audiofalloffdistance: "dvbi-player.audiofalloffdistance",
+		width: "dvb-i-video-player.width",
+		muted: "dvb-i-video-player.muted",
+		channelnumber: "dvb-i-video-player.channelnumber",
+		distancebasedvolume: "dvb-i-video-player.distancebasedvolume",
+		maxaudiodistance: "dvb-i-video-player.maxaudiodistance",
+		audiofalloffdistance: "dvb-i-video-player.audiofalloffdistance",
 	},
 });
 
-type DVBIPlayerComponentData = {
+type DVBIVideoPlayerComponentData = {
 	muted: boolean;
 	width: number;
 	channelnumber: number;
@@ -35,8 +35,8 @@ type DVBIPlayerComponentData = {
 	maxaudiodistance: number;
 	audiofalloffdistance: number;
 };
-export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> {
-	static schema: Schema<DVBIPlayerComponentData> = {
+export class DVBIVideoPlayerComponent extends BaseComponent<DVBIVideoPlayerComponentData> {
+	static schema: Schema<DVBIVideoPlayerComponentData> = {
 		width: { type: "number", default: DVBI_PLAYER_DEFAULT_WIDTH },
 		muted: { type: "boolean", default: false },
 		channelnumber: { type: "number", default: -1 },
@@ -91,7 +91,7 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 		}
 	}
 
-	public async update(oldData: DVBIPlayerComponentData) {
+	public async update(oldData: DVBIVideoPlayerComponentData) {
 		if (Object.keys(oldData).length === 0) {
 			return;
 		}
@@ -134,7 +134,7 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 		this.videoElement = document.createElement(
 			"video"
 		) as unknown as HTMLVideoElement;
-		this.videoElement.id = DVBIPlayerComponent.getUniqueId();
+		this.videoElement.id = DVBIVideoPlayerComponent.getUniqueId();
 		this.videoElement.setAttribute("crossorigin", "anonymous");
 		// add the video as a reference for the a-video primitive
 		this.el.appendChild(this.videoElement);
@@ -187,7 +187,9 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 	}
 
 	private createVideoControls(muted: boolean) {
-		this.videoControls = document.createElement("a-dvbi-player-controls");
+		this.videoControls = document.createElement(
+			"a-dvb-i-video-player-controls"
+		);
 		this.videoControls.setAttribute("muted", "" + muted);
 		this.videoControls.setAttribute("playing", "" + true);
 		this.videoControls.setAttribute(
@@ -314,7 +316,7 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 
 		(this.dashPlayer as dashjs.MediaPlayerClass).attachSource(nextStreamUrl);
 		this.el
-			.getElementsByTagName("a-dvbi-player-controls")[0]
+			.getElementsByTagName("a-dvb-i-video-player-controls")[0]
 			.setAttribute("playing", "true");
 	}
 
@@ -376,4 +378,7 @@ export class DVBIPlayerComponent extends BaseComponent<DVBIPlayerComponentData> 
 	}
 }
 
-AFRAME.registerComponent("dvbi-player", toComponent(DVBIPlayerComponent));
+AFRAME.registerComponent(
+	"dvb-i-video-player",
+	toComponent(DVBIVideoPlayerComponent)
+);
