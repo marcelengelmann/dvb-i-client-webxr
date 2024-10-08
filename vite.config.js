@@ -1,5 +1,4 @@
 import { resolve } from "path";
-import checker from "vite-plugin-checker";
 
 const fullReloadAlways = {
 	name: "full-reload-always",
@@ -10,7 +9,6 @@ const fullReloadAlways = {
 };
 
 export default {
-	plugins: [checker({ typescript: true }), fullReloadAlways], // e.g. use TypeScript check
 	resolve: { preserveSymlinks: true },
 	assetsInclude: ["**/*.png", "**/*.gltf"],
 	base: "/dvb-i-client-webxr/",
