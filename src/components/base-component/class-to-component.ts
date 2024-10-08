@@ -1,3 +1,5 @@
+// source code is based on https://github.com/illustspace/aframe-typescript-class-components
+
 import { ComponentDefinition, System } from "aframe";
 import { AbstractBaseComponent, GenericBaseComponent } from "./base-component";
 

@@ -10,11 +10,9 @@
   },
   "devDependencies": {
     "@types/aframe": "^1.2.6",
-    "@types/systemjs": "^6.13.5",
     "@types/xml2js": "^0.4.14",
     "typescript": "^5.2.2",
-    "vite": "^5.1.6",
-    "vite-plugin-checker": "^0.6.4"
+    "vite": "^5.1.6"
   },
   "dependencies": {
     "aframe": "^1.5.0",

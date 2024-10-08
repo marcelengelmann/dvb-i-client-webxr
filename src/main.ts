@@ -1,6 +1,6 @@
 import "./components/channels-menu/dvb-i-channels-menu.ts";
 import "./components/controls/dvb-i-controller.ts";
-import "./components/position-listener/position-listener";
+import "./components/position-listener/camera-position-listener.ts";
 import "./components/trash-bin/trash-bin";
 import "./components/video-player/dvb-i-video-player.ts";
 import "./components/video-player/video-controls/dvb-i-video-player-controls.ts";

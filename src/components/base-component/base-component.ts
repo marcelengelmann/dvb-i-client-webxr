@@ -1,3 +1,5 @@
+// source code is based on https://github.com/illustspace/aframe-typescript-class-components
+
 import { Component, Entity, Schema, System, THREE } from "aframe";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
