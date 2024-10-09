@@ -21,14 +21,14 @@ AFRAME.registerPrimitive("a-dvb-i-channels-menu", {
 	},
 });
 
-type ChannelsMenuData = {
+type DVBIChannelsMenuData = {
 	width: number;
 	backgroundcolor: string;
 	textcolor: string;
 };
 
-export class ChannelsMenuComponent extends BaseComponent<ChannelsMenuData> {
-	static schema: Schema<ChannelsMenuData> = {
+export class DVBIChannelsMenuComponent extends BaseComponent<DVBIChannelsMenuData> {
+	static schema: Schema<DVBIChannelsMenuData> = {
 		width: { type: "number", default: 1 },
 		backgroundcolor: { type: "string", default: "gray" },
 		textcolor: { type: "string", default: "black" },
@@ -60,7 +60,7 @@ export class ChannelsMenuComponent extends BaseComponent<ChannelsMenuData> {
 		this.createComponentElements();
 	}
 
-	public update(oldData: ChannelsMenuData): void {
+	public update(oldData: DVBIChannelsMenuData): void {
 		if (Object.keys(oldData).length === 0) {
 			return;
 		}
@@ -140,29 +140,31 @@ export class ChannelsMenuComponent extends BaseComponent<ChannelsMenuData> {
 			(event: Event) => {
 				const eventData = (event as CustomEvent).detail as GrabbingEndEventData;
 				this.grabbableChannelElement.setAttribute("visible", "false");
+
+				if (!eventData.dropped) {
+					// grabbed element was not dropped onto another element in the scene
+					const newPlayer = document.createElement("a-dvb-i-video-player");
+					const worldPos = new AFRAME.THREE.Vector3();
+					worldPos.setFromMatrixPosition(
+						this.grabbableChannelElement.object3D.matrixWorld
+					);
+					const rotationGrabbedElement =
+						this.grabbableChannelElement.getAttribute("rotation");
+					newPlayer.setAttribute("position", worldPos);
+					newPlayer.setAttribute("channelnumber", this.channelNumber);
+					newPlayer.setAttribute("rotation", rotationGrabbedElement);
+					const scene = document.getElementById("scene");
+					scene!.appendChild(newPlayer);
+				}
+
 				this.grabbableChannelElement.setAttribute(
 					"position",
 					this.channelImageElement.getAttribute("position")
 				);
-				const rotationGrabbedElement =
-					this.grabbableChannelElement.getAttribute("rotation");
 				this.grabbableChannelElement.setAttribute(
 					"rotation",
 					this.channelImageElement.getAttribute("rotation")
 				);
-				if (eventData.dropped) {
-					return;
-				}
-				const newPlayer = document.createElement("a-dvb-i-video-player");
-				const worldPos = new AFRAME.THREE.Vector3();
-				worldPos.setFromMatrixPosition(
-					this.grabbableChannelElement.object3D.matrixWorld
-				);
-				newPlayer.setAttribute("position", worldPos);
-				newPlayer.setAttribute("channelnumber", this.channelNumber);
-				newPlayer.setAttribute("rotation", rotationGrabbedElement);
-				const scene = document.getElementById("scene");
-				scene!.appendChild(newPlayer);
 			}
 		);
 
@@ -220,5 +222,5 @@ export class ChannelsMenuComponent extends BaseComponent<ChannelsMenuData> {
 
 AFRAME.registerComponent(
 	"dvb-i-channels-menu",
-	toComponent(ChannelsMenuComponent)
+	toComponent(DVBIChannelsMenuComponent)
 );

@@ -167,12 +167,19 @@ export class DVBIVideoPlayerComponent extends BaseComponent<DVBIVideoPlayerCompo
 
 		this.el.addEventListener("dropped", (event: Event) => {
 			const eventData = (event as CustomEvent).detail as DroppedEventData;
+			if (!(eventData.element as any).channelNumber) {
+				return;
+			}
 			this.startNewStream(undefined, (eventData.element as any).channelNumber);
 		});
 
 		this.el.addEventListener("resizeBy", (event: Event) => {
 			const resizeBy = (event as CustomEvent).detail as number;
 			this.el.setAttribute("width", this.data.width + resizeBy * 2);
+		});
+
+		this.el.addEventListener("removeElement", () => {
+			this.removeStreamElement();
 		});
 	}
 
@@ -208,9 +215,7 @@ export class DVBIVideoPlayerComponent extends BaseComponent<DVBIVideoPlayerCompo
 			this.startNewStream(-1)
 		);
 		this.videoControls.addEventListener("closeStream", () => {
-			this.dashPlayer.destroy();
-			this.el.removeChild(this.videoElement);
-			this.el.parentElement?.removeChild(this.el);
+			this.removeStreamElement();
 		});
 		this.videoControls.addEventListener("videoIsPlaying", (event: Event) => {
 			const e = event as CustomEvent;
@@ -375,6 +380,12 @@ export class DVBIVideoPlayerComponent extends BaseComponent<DVBIVideoPlayerCompo
 		}
 
 		this.dashPlayer.setVolume(Math.max(0, Math.min(1, volume)));
+	}
+
+	private removeStreamElement(): void {
+		this.dashPlayer.destroy();
+		this.el.removeChild(this.videoElement);
+		this.el.parentElement?.removeChild(this.el);
 	}
 }
 

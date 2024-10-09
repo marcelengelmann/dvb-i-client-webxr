@@ -87,7 +87,7 @@ export class DVBIControllerComponent extends BaseComponent<DVBIControllerCompone
 	// Grab functions
 	private grabStart(event: any): void {
 		// don't start grabbing event, if already resizing (Resizing priority is higher than grabbing)
-		if (this.resizeData) {
+		if (this.resizeData || this.grabData) {
 			return;
 		}
 		const element = getFirstIntersectionByClass(
@@ -95,7 +95,7 @@ export class DVBIControllerComponent extends BaseComponent<DVBIControllerCompone
 			"grabbable"
 		)?.element;
 
-		if (!element || this.grabData) {
+		if (!element) {
 			return;
 		}
 
@@ -212,21 +212,12 @@ export class DVBIControllerComponent extends BaseComponent<DVBIControllerCompone
 		}
 
 		const resizeAmount =
-			(this.resizeData.intersectionPoint.x -
-				intersection.point.x) /*+ (this.rotation.x - rotation.x)*/ *
+			(this.resizeData.intersectionPoint.x - intersection.point.x) *
 				this.resizeData.xFactor +
-			(this.resizeData.intersectionPoint.y -
-				intersection.point.y) /*+ (this.rotation.y - rotation.y)*/ *
+			(this.resizeData.intersectionPoint.y - intersection.point.y) *
 				this.resizeData.yFactor +
-			(intersection.point.z -
-				this.resizeData.intersectionPoint
-					.z) /*+ (this.rotation.z - rotation.z)*/ *
+			(intersection.point.z - this.resizeData.intersectionPoint.z) *
 				this.resizeData.zFactor;
-
-		// let distance = calculateDistance(
-		// 	this.resizeData.intersectionPoint,
-		// 	intersection.point
-		// );
 
 		if (resizeAmount === 0) {
 			return;
