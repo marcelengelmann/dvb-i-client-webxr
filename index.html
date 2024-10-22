@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <script type="module" src="src/main.ts"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DVB-I Client for WebXR</title>
+</head>
+
+<body>
+
+  <a-scene id="scene" background="color: lightgrey" cursor="rayOrigin: mouse" xr-mode-ui="XRMode: xr">
+    <a-camera id="camera" position="0 1.6 0">
+    </a-camera>
+    <!-- controllers -->
+    <a-entity laser-controls="hand: left;"
+      dvb-i-controller="grabstartevent: gripdown; grabendevent: gripup; resizestartevent: gripdown; resizeendevent: gripup;"></a-entity>
+    <a-entity laser-controls="hand: right;"
+      dvb-i-controller="grabstartevent: gripdown; grabendevent: gripup; resizestartevent: gripdown; resizeendevent: gripup;"></a-entity>
+
+
+    <!-- dvbi elements -->
+    <a-dvb-i-video-player position="0.0 1.6 -2.0" muted="true" camera-position-listener></a-dvb-i-video-player>
+    <a-dvb-i-channels-menu backgroundcolor="grey" position="-3 1.6 -2"></a-dvb-i-channels-menu>
+    <a-dvb-i-trash-bin position="0 0 -1" class="grabbable"></a-dvb-i-trash-bin>
+  </a-scene>
+
+</body>
+
+</html>
