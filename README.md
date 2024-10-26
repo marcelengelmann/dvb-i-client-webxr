@@ -8,26 +8,28 @@ This project is a prototype for running DVB-I DASH streams in VR using WebXR.
 - Vite
 
 ## How to use
-### Online
+### Online Demo
 The prototype can be tested online by visiting the github pages site: [https://marcelengelmann.github.io/dvb-i-client-webxr/](https://marcelengelmann.github.io/dvb-i-client-webxr/)
 
-### Offline
-1. Clone the repo
+### Locally
+1. Install [Node.js and npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
+
+2. Clone the repo
 ```bash
 git clone https://github.com/marcelengelmann/dvb-i-client-webxr
 ```
 
-2. Install dependencies
+3. Install dependencies
 ```bash
 npm install
 ```
 
-3. Start the dev server
+4. Start the dev server
 ```bash
 npm start
 ```
 
-4. Open the dev server's url in your browser
+5. Open the dev server's url in your browser
 
 ### Build the project
 1. Build the project using vite with the npm command
